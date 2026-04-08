@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniPro Fleet Intelligence</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <section class="login-screen" id="loginScreen">
+      <div class="login-hero">
+        <p class="eyebrow">Fleet Performance Studio</p>
+        <h1>Driver dashboards, coaching analytics, route traces, and secure local logins.</h1>
+        <p class="lede">
+          Upload UniPro TSVs, compare the whole fleet, and let managers and drivers sign in to view polished,
+          role-specific insights powered by local Ollama AI.
+        </p>
+        <div class="login-demo-cards">
+          <div class="demo-card">
+            <span>Manager demo</span>
+            <strong>manager / manager123</strong>
+          </div>
+          <div class="demo-card">
+            <span>Driver demo</span>
+            <strong>ava / driver123</strong>
+          </div>
+        </div>
+      </div>
+
+      <form class="login-panel" id="loginForm">
+        <p class="section-tag">Secure Sign In</p>
+        <h2>Welcome back</h2>
+        <label class="field">
+          <span>Username</span>
+          <input id="username" type="text" autocomplete="username" required>
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="primary-button" type="submit">Sign in</button>
+        <p class="helper-text" id="loginMessage">Use the seeded demo accounts or swap them later in `data/users.json`.</p>
+      </form>
+    </section>
+
+    <section class="workspace hidden" id="workspace">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <div class="brand-mark">U</div>
+          <div>
+            <p class="eyebrow">UniPro AI</p>
+            <h2>Fleet Intelligence</h2>
+          </div>
+        </div>
+        <div class="user-card">
+          <span id="userRoleBadge" class="badge">Role</span>
+          <strong id="userName">User</strong>
+          <p id="userMeta" class="helper-text"></p>
+        </div>
+        <nav class="nav-links">
+          <button class="nav-link is-active" type="button">Dashboard</button>
+          <button class="nav-link" type="button">Drivers</button>
+          <button class="nav-link" type="button">Routes</button>
+          <button class="nav-link" type="button">Insights</button>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="support-card">
+            <strong>Local AI status</strong>
+            <p class="helper-text" id="healthMessage">Checking local AI...</p>
+          </div>
+          <button id="logoutBtn" class="ghost-button" type="button">Log out</button>
+        </div>
+      </aside>
+
+      <main class="workspace-main">
+        <header class="topbar">
+          <div class="topbar-left">
+            <span class="topbar-title">Dashboard</span>
+            <span class="topbar-sep">/</span>
+            <span class="topbar-context">Fleet Overview</span>
+          </div>
+          <div class="topbar-right">
+            <label class="topbar-search">
+              <input type="text" placeholder="Search drivers or metrics">
+            </label>
+            <div class="topbar-user">
+              <span class="badge subtle-badge">Local</span>
+              <span id="topbarUserName">Session</span>
+            </div>
+          </div>
+        </header>
+
+        <header class="workspace-header">
+          <div>
+            <p class="eyebrow">Live Workspace</p>
+            <h1 id="workspaceTitle">Fleet dashboard</h1>
+            <p class="lede" id="workspaceSubtitle">Local-first analysis with driver-level access and map-ready trip data.</p>
+          </div>
+          <div class="header-actions">
+            <label class="inline-field compact-field">
+              <span>AI provider</span>
+              <select id="aiProvider">
+                <option value="ollama">Ollama</option>
+                <option value="openai">OpenAI</option>
+              </select>
+            </label>
+            <label class="inline-field">
+              <span>Model</span>
+              <input id="model" type="text" value="gemma3:1b">
+            </label>
+            <label class="inline-field api-key-field">
+              <span>API key</span>
+              <input id="apiKey" type="password" placeholder="Only needed for OpenAI">
+            </label>
+            <button id="generateAiBtn" class="secondary-button" type="button">Refresh AI Feedback</button>
+          </div>
+        </header>
+
+        <section class="manager-tools panel hidden" id="managerTools">
+          <div class="panel-heading">
+            <div>
+              <p class="section-tag">Manager Tools</p>
+              <h2>Upload, compare, and publish dashboards</h2>
+            </div>
+            <div class="toolbar">
+              <button id="loadDemoBtn" class="ghost-button" type="button">Load Demo Fleet</button>
+              <button id="saveDashboardBtn" class="secondary-button" type="button">Save Dashboard</button>
+            </div>
+          </div>
+          <div class="manager-grid">
+            <label class="dropzone" for="fileInput" id="dropzone">
+              <input id="fileInput" type="file" accept=".tsv,.txt,text/tab-separated-values" multiple hidden>
+              <span class="dropzone-title">Drop UniPro TSV files here</span>
+              <span class="dropzone-subtitle">or browse and publish updated fleet dashboards</span>
+            </label>
+            <div class="settings-card">
+              <label class="field">
+                <span>Team context</span>
+                <textarea id="teamContext" rows="3" placeholder="Example: UK fuel distribution fleet with strong emphasis on smoothness, safety, idle control, and route discipline."></textarea>
+              </label>
+              <label class="field">
+                <span>Coaching objective</span>
+                <textarea id="coachingGoal" rows="3" placeholder="Example: Give each driver an encouraging summary, one standout strength, and two practical priorities for the next week."></textarea>
+              </label>
+            </div>
+          </div>
+          <div class="file-list" id="fileList"></div>
+        </section>
+
+        <section class="metrics-strip" id="metricsStrip"></section>
+
+        <section class="panel spotlight-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-tag">Selected Driver</p>
+              <h2>Live performance spotlight</h2>
+            </div>
+            <div id="driverTabs" class="driver-tabs"></div>
+          </div>
+          <div class="spotlight-grid">
+            <div id="driverSpotlight" class="spotlight-card"></div>
+            <div id="trendPanel" class="chart-surface"></div>
+          </div>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-tag">Performance</p>
+                <h2>Fleet comparison</h2>
+              </div>
+            </div>
+            <div id="scoreboardChart" class="chart-surface"></div>
+            <div class="comparison-table-wrap">
+              <table class="comparison-table" id="comparisonTable"></table>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-tag">Trips</p>
+                <h2>Route trace</h2>
+              </div>
+            </div>
+            <div id="mapPanel" class="map-panel"></div>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-tag">AI Reports</p>
+              <h2>Structured debrief output</h2>
+            </div>
+          </div>
+          <div id="reportPanel" class="report-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-tag">Drivers</p>
+              <h2>Individual scorecards</h2>
+            </div>
+            <button id="exportBtn" class="ghost-button" type="button">Export Dashboard JSON</button>
+          </div>
+          <div class="feedback-grid" id="feedbackGrid"></div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <script src="./dashboard-app.js"></script>
+</body>
+</html>

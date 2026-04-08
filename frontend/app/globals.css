@@ -246,7 +246,7 @@ body {
 
 .workspace-shell-mobile {
   background:
-    linear-gradient(180deg, rgba(11, 19, 32, 0.96), rgba(10, 18, 31, 0.98));
+    linear-gradient(180deg, #07111d 0%, #091523 32%, #0b1827 100%);
 }
 
 .workspace-sidebar-mobile {
@@ -257,6 +257,8 @@ body {
   transform: translateX(-105%);
   transition: transform 180ms ease;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(10, 18, 29, 0.98), rgba(8, 15, 25, 0.98));
+  backdrop-filter: blur(20px);
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
 }
 
@@ -265,17 +267,40 @@ body {
 }
 
 .workspace-content-mobile {
-  padding-bottom: 6.5rem;
+  padding-bottom: 5.4rem;
+  padding-top: 0.6rem;
 }
 
 .workspace-screen-card-mobile {
-  border-radius: 22px;
-  padding: 1.15rem;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0.15rem 0 0.55rem;
 }
 
 .workspace-screen-card-mobile h1 {
-  font-size: 1.85rem;
-  line-height: 1.12;
+  margin-top: 0.15rem;
+  font-size: 1.15rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.workspace-screen-card-mobile .workspace-section-label {
+  display: none;
+}
+
+.workspace-screen-card-mobile .workspace-screen-subtitle {
+  margin-top: 0.2rem;
+  max-width: none;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #8ea3c7;
+}
+
+.workspace-screen-card-mobile .workspace-action-row {
+  margin-top: 0.45rem;
+  gap: 0.35rem;
 }
 
 .workspace-mobile-tabbar {
@@ -287,28 +312,28 @@ body {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.45rem;
-  padding: 0.5rem;
+  padding: 0.45rem;
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(10, 18, 31, 0.92);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+  background: rgba(6, 12, 20, 0.78);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.36);
 }
 
 .workspace-mobile-tab {
-  min-height: 3.25rem;
+  min-height: 2.85rem;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 600;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #8fa3c4;
+  font-size: 0.69rem;
+  font-weight: 700;
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
 }
 
 .workspace-mobile-tab.is-active {
-  border-color: rgba(93, 143, 255, 0.38);
-  background: rgba(93, 143, 255, 0.16);
+  border-color: rgba(93, 143, 255, 0.16);
+  background: linear-gradient(180deg, rgba(60, 109, 214, 0.28), rgba(60, 109, 214, 0.14));
   color: #eff5ff;
 }
 
@@ -318,23 +343,23 @@ body {
 }
 
 .mobile-session-page {
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .mobile-session-hero {
-  gap: 1rem;
+  gap: 0.65rem;
 }
 
 .mobile-session-kpis {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0.45rem;
 }
 
 .mobile-session-action-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.45rem;
 }
 
 .mobile-summary-stack {
@@ -345,7 +370,7 @@ body {
 .mobile-session-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0.45rem;
 }
 
 .mobile-results-tab-row {
@@ -360,8 +385,14 @@ body {
 .workspace-mobile-bar {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+  padding: 0.25rem 0 0.1rem;
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  background: linear-gradient(180deg, rgba(9, 18, 30, 0.98), rgba(9, 18, 30, 0.72) 75%, rgba(9, 18, 30, 0));
+  backdrop-filter: blur(16px);
 }
 
 .workspace-mobile-toggle {
@@ -369,12 +400,12 @@ body {
   flex-direction: column;
   justify-content: center;
   gap: 0.28rem;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 14px;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(16, 25, 40, 0.92);
-  padding: 0.7rem;
+  padding: 0.55rem;
 }
 
 .workspace-mobile-toggle span {
@@ -387,6 +418,284 @@ body {
 
 .workspace-mobile-title {
   min-width: 0;
+}
+
+.workspace-mobile-title .workspace-section-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  color: #7e92b3;
+}
+
+.workspace-mobile-title .font-medium {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.mobile-compact-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.mobile-compact-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #88a2cb;
+}
+
+.mobile-compact-title {
+  font-size: 1.25rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #f5f8ff;
+}
+
+.mobile-compact-text {
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.mobile-stat-strip {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+  scrollbar-width: none;
+}
+
+.mobile-stat-chip {
+  min-width: 5.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.45rem 0.7rem 0.5rem;
+}
+
+.mobile-stat-chip-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7f97be;
+}
+
+.mobile-stat-chip-value {
+  margin-top: 0.18rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f4f8ff;
+}
+
+.mobile-toolbar {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.mobile-toolbar .workspace-primary,
+.mobile-toolbar .workspace-ghost,
+.mobile-toolbar .workspace-danger {
+  min-height: 2.5rem;
+  padding: 0.62rem 0.8rem !important;
+  font-size: 0.78rem;
+  border-radius: 12px;
+}
+
+.mobile-section-card {
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  padding: 0.85rem 0 0;
+}
+
+.mobile-section-card + .mobile-section-card {
+  margin-top: 0.15rem;
+}
+
+.mobile-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.mobile-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f5f8ff;
+}
+
+.mobile-section-note {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.mobile-list-stack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.mobile-list-row {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.78rem 0.82rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.mobile-list-row-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.mobile-list-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f5f8ff;
+}
+
+.mobile-list-meta {
+  margin-top: 0.18rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.mobile-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.mobile-list-actions .workspace-primary,
+.mobile-list-actions .workspace-ghost,
+.mobile-list-actions .workspace-danger {
+  min-height: 2.35rem;
+  padding: 0.55rem 0.75rem !important;
+  font-size: 0.76rem;
+  border-radius: 11px;
+}
+
+.mobile-chip-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.mobile-chip-strip .pill {
+  font-size: 0.68rem;
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+}
+
+.mobile-filter-stack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.mobile-filter-stack .workspace-field,
+.mobile-section-card .workspace-field {
+  min-height: 2.6rem;
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.88rem;
+}
+
+.mobile-section-card textarea.workspace-field {
+  min-height: 5.5rem;
+}
+
+.mobile-inline-metrics {
+  display: grid;
+  gap: 0.38rem;
+  margin-top: 0.55rem;
+}
+
+.mobile-inline-metrics .session-debrief-row {
+  padding: 0.1rem 0;
+  font-size: 0.8rem;
+}
+
+.mobile-quick-prompt {
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.03);
+  padding: 0.78rem 0.82rem;
+  text-align: left;
+  font-size: 0.82rem;
+  color: #eff5ff;
+}
+
+.mobile-planning-page .workspace-primary,
+.mobile-planning-page .workspace-ghost,
+.mobile-planning-page .workspace-danger,
+.mobile-session-page .workspace-primary,
+.mobile-session-page .workspace-ghost,
+.mobile-session-page .workspace-danger,
+.mobile-history-page .workspace-primary,
+.mobile-history-page .workspace-ghost,
+.mobile-history-page .workspace-danger,
+.mobile-report-page .workspace-primary,
+.mobile-report-page .workspace-ghost,
+.mobile-report-page .workspace-danger,
+.mobile-setup-db-page .workspace-primary,
+.mobile-setup-db-page .workspace-ghost,
+.mobile-setup-db-page .workspace-danger,
+.mobile-chat-page .workspace-primary,
+.mobile-chat-page .workspace-ghost,
+.mobile-chat-page .workspace-danger {
+  min-height: 2.55rem;
+  border-radius: 13px;
+  padding: 0.68rem 0.9rem;
+  font-size: 0.78rem;
+}
+
+.mobile-planning-page .workspace-field,
+.mobile-session-page .workspace-field,
+.mobile-report-page .workspace-field,
+.mobile-setup-db-page .workspace-field,
+.mobile-chat-page .workspace-field {
+  min-height: 2.8rem;
+  border-radius: 14px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.86rem;
+}
+
+.mobile-planning-page textarea.workspace-field,
+.mobile-session-page textarea.workspace-field,
+.mobile-report-page textarea.workspace-field,
+.mobile-setup-db-page textarea.workspace-field,
+.mobile-chat-page textarea.workspace-field {
+  min-height: 5.75rem;
+}
+
+.mobile-planning-page .library-item,
+.mobile-report-page .library-item,
+.mobile-setup-db-page .library-item {
+  border-radius: 14px;
+  padding: 0.75rem 0.85rem;
+}
+
+.mobile-chat-page .chat-thread {
+  gap: 0.7rem;
+}
+
+.mobile-chat-page .chat-bubble {
+  border-radius: 16px;
+  padding: 0.8rem 0.9rem;
+}
+
+.mobile-chat-page .chat-role {
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
 }
 
 .workspace-brand {
@@ -887,6 +1196,92 @@ body {
   display: grid;
   gap: 0.9rem;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.mobile-planning-hero,
+.mobile-session-hero {
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  padding: 0.15rem 0 0.45rem;
+  box-shadow: none;
+}
+
+.mobile-planning-hero .workspace-hero-title,
+.mobile-session-hero .workspace-hero-title {
+  font-size: 1.3rem;
+  line-height: 1.08;
+}
+
+.mobile-planning-hero .workspace-hero-text,
+.mobile-session-hero .workspace-hero-text {
+  margin-top: 0.2rem;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.mobile-planning-page .app-panel,
+.mobile-session-page .app-panel,
+.mobile-history-page .app-panel,
+.mobile-report-page .app-panel,
+.mobile-setup-db-page .app-panel,
+.mobile-chat-page .app-panel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0 !important;
+}
+
+.mobile-planning-page .workspace-subtle-card,
+.mobile-session-page .workspace-subtle-card,
+.mobile-history-page .workspace-subtle-card,
+.mobile-report-page .workspace-subtle-card,
+.mobile-setup-db-page .workspace-subtle-card,
+.mobile-chat-page .workspace-subtle-card {
+  border-radius: 18px;
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mobile-planning-page .workspace-kpi,
+.mobile-session-page .workspace-kpi,
+.mobile-history-page .workspace-kpi,
+.mobile-report-page .workspace-kpi,
+.mobile-setup-db-page .workspace-kpi,
+.mobile-chat-page .workspace-kpi {
+  padding: 0.6rem 0.68rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mobile-planning-page .workspace-kpi-label,
+.mobile-session-page .workspace-kpi-label,
+.mobile-history-page .workspace-kpi-label,
+.mobile-report-page .workspace-kpi-label,
+.mobile-setup-db-page .workspace-kpi-label,
+.mobile-chat-page .workspace-kpi-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+}
+
+.mobile-planning-page .workspace-kpi-value,
+.mobile-session-page .workspace-kpi-value,
+.mobile-history-page .workspace-kpi-value,
+.mobile-report-page .workspace-kpi-value,
+.mobile-setup-db-page .workspace-kpi-value,
+.mobile-chat-page .workspace-kpi-value {
+  margin-top: 0.3rem;
+  font-size: 1rem;
+}
+
+.mobile-planning-page .workspace-kpi-detail,
+.mobile-session-page .workspace-kpi-detail,
+.mobile-history-page .workspace-kpi-detail,
+.mobile-report-page .workspace-kpi-detail,
+.mobile-setup-db-page .workspace-kpi-detail,
+.mobile-chat-page .workspace-kpi-detail {
+  font-size: 0.8rem;
 }
 
 @media (max-width: 1023px) {

@@ -148,37 +148,37 @@ export default function ReportBuilderPanel({
     return (
       <div className="workspace-page mobile-report-page">
         <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
-          <div className="workspace-hero-copy max-w-3xl">
-            <p className="workspace-section-label">Mobile Reports</p>
-            <h2 className="workspace-hero-title">Generate and publish reports on the phone.</h2>
-            <p className="workspace-hero-text">Pick the session, switch the audience, preview the shape of the report, then generate and publish without the full desktop studio around it.</p>
+          <div className="workspace-hero-copy max-w-3xl mobile-compact-header">
+            <p className="mobile-compact-label">Mobile Reports</p>
+            <h2 className="mobile-compact-title">Generate and publish reports on the phone.</h2>
+            <p className="mobile-compact-text">Pick the session, switch the audience, preview the shape of the report, then generate and publish without the full desktop studio around it.</p>
           </div>
-          <div className="mobile-session-kpis">
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Sessions</p>
-              <p className="workspace-kpi-value">{availableSessions.length}</p>
+          <div className="mobile-stat-strip">
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Sessions</p>
+              <p className="mobile-stat-chip-value">{availableSessions.length}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Reports</p>
-              <p className="workspace-kpi-value">{reportsStore.length}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Reports</p>
+              <p className="mobile-stat-chip-value">{reportsStore.length}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Audience</p>
-              <p className="workspace-kpi-value">{audience.charAt(0).toUpperCase() + audience.slice(1)}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Audience</p>
+              <p className="mobile-stat-chip-value">{audience.charAt(0).toUpperCase() + audience.slice(1)}</p>
             </div>
           </div>
         </section>
 
         <div className="grid gap-4">
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Session</p>
-                <h3 className="mt-2 text-xl font-semibold">{session ? session.event_round : "Choose a session"}</h3>
+                <p className="mobile-section-title">{session ? session.event_round : "Choose a session"}</p>
+                <p className="mobile-section-note">The mobile report flow starts with the upload you want to package.</p>
               </div>
               {session ? <span className="pill">{session.status || "uploaded"}</span> : null}
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mobile-list-stack">
               {availableSessions.length ? availableSessions.map((item) => (
                 <button
                   key={item.id}
@@ -188,8 +188,8 @@ export default function ReportBuilderPanel({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium">{item.event_round || item.event_name}</p>
-                      <p className="mt-1 text-sm muted">{item.event_name} / {item.session_type}</p>
+                      <p className="mobile-list-title">{item.event_round || item.event_name}</p>
+                      <p className="mobile-list-meta">{item.event_name} / {item.session_type}</p>
                     </div>
                     <span className="pill pill-neutral">{item.driver_count || item.drivers?.length || 0}</span>
                   </div>
@@ -200,15 +200,15 @@ export default function ReportBuilderPanel({
 
           {session ? (
             <>
-              <article className="app-panel p-4">
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <article className="mobile-section-card">
+                <div className="mobile-section-head">
                   <div>
-                    <p className="workspace-section-label">Audience</p>
-                    <h3 className="mt-2 text-xl font-semibold">{audiencePreview.title}</h3>
+                    <p className="mobile-section-title">{audiencePreview.title}</p>
+                    <p className="mobile-section-note">Switch audience first, then generate the matching style of report.</p>
                   </div>
                   {latestGenerated ? <span className="pill pill-neutral">{latestGenerated.status || "draft"}</span> : null}
                 </div>
-                <div className="mt-4 chip-row">
+                <div className="mobile-chip-strip">
                   {[
                     ["coach", "Coach"],
                     ["driver", "Driver"],
@@ -224,7 +224,7 @@ export default function ReportBuilderPanel({
                     </button>
                   ))}
                 </div>
-                <div className="mt-4 grid gap-2">
+                <div className="mobile-inline-metrics">
                   {includedSections.map((item) => (
                     <div key={item.id} className="session-debrief-row">
                       <span>{item.label}</span>
@@ -234,21 +234,21 @@ export default function ReportBuilderPanel({
                 </div>
               </article>
 
-              <article className="app-panel p-4">
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <article className="mobile-section-card">
+                <div className="mobile-section-head">
                   <div>
-                    <p className="workspace-section-label">Actions</p>
-                    <h3 className="mt-2 text-xl font-semibold">Generate and export</h3>
+                    <p className="mobile-section-title">Generate and export</p>
+                    <p className="mobile-section-note">Keep the actions quick and obvious on mobile.</p>
                   </div>
                 </div>
-                <div className="mt-4 grid gap-3">
-                  <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" onClick={onGenerateFeedback} type="button" disabled={loading}>
+                <div className="mobile-toolbar">
+                  <button className="workspace-primary text-white" onClick={onGenerateFeedback} type="button" disabled={loading}>
                     {loading ? "Generating..." : "Generate report"}
                   </button>
-                  <button className="workspace-ghost px-4 py-3 text-sm" onClick={openHtmlTemplate} type="button">
+                  <button className="workspace-ghost" onClick={openHtmlTemplate} type="button">
                     Open HTML template
                   </button>
-                  <button className="workspace-ghost px-4 py-3 text-sm" onClick={onExportPdf} type="button" disabled={loading}>
+                  <button className="workspace-ghost" onClick={onExportPdf} type="button" disabled={loading}>
                     Export PDF
                   </button>
                 </div>
@@ -259,16 +259,15 @@ export default function ReportBuilderPanel({
                 ) : null}
               </article>
 
-              <article className="app-panel p-4">
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <article className="mobile-section-card">
+                <div className="mobile-section-head">
                   <div>
-                    <p className="workspace-section-label">Publish</p>
-                    <h3 className="mt-2 text-xl font-semibold">{publishConfig.title}</h3>
+                    <p className="mobile-section-title">{publishConfig.title}</p>
+                    <p className="mobile-section-note">{publishConfig.helper}</p>
                   </div>
                 </div>
-                <p className="mt-4 text-sm muted">{publishConfig.helper}</p>
                 {latestGenerated ? (
-                  <div className="mt-4 grid gap-3">
+                  <div className="mobile-filter-stack">
                     <textarea
                       className="workspace-field min-h-[100px]"
                       placeholder="Optional review note..."
@@ -283,9 +282,9 @@ export default function ReportBuilderPanel({
                       <span>Published</span>
                       <span>{latestGenerated.published_at || "Not published yet"}</span>
                     </div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="mobile-toolbar">
                       <button
-                        className="workspace-primary px-4 py-3 text-sm font-medium text-white"
+                        className="workspace-primary text-white"
                         onClick={() => onPublishReport(latestGenerated.id, { ...publishConfig.publishPayload, review_note: reviewNoteDraft })}
                         type="button"
                       >
@@ -293,7 +292,7 @@ export default function ReportBuilderPanel({
                       </button>
                       {canUnpublishLatest ? (
                         <button
-                          className="workspace-ghost px-4 py-3 text-sm"
+                          className="workspace-ghost"
                           onClick={() => onPublishReport(latestGenerated.id, { ...publishConfig.unpublishPayload, review_note: reviewNoteDraft })}
                           type="button"
                         >
@@ -307,31 +306,31 @@ export default function ReportBuilderPanel({
                 )}
               </article>
 
-              <article className="app-panel p-4">
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <article className="mobile-section-card">
+                <div className="mobile-section-head">
                   <div>
-                    <p className="workspace-section-label">Preview</p>
-                    <h3 className="mt-2 text-xl font-semibold">{audiencePreview.title}</h3>
+                    <p className="mobile-section-title">{audiencePreview.title}</p>
+                    <p className="mobile-section-note">Latest generated content, trimmed for the phone view.</p>
                   </div>
                   <span className="pill pill-neutral">{formatDateLabel(session.created_at)}</span>
                 </div>
-                <div className="mt-4 grid gap-3">
+                <div className="mobile-list-stack">
                   {latestGeneratedRows.length ? latestGeneratedRows.slice(0, 3).map((report) => (
-                    <div key={`${latestGenerated?.id || "draft"}-${report.driver_name}`} className="workspace-subtle-card p-4">
-                      <p className="font-medium">{report.canonical_driver_name || report.driver_name}</p>
-                      {report.headline ? <p className="mt-2 text-sm text-blue-100">{report.headline}</p> : null}
-                      <p className="mt-3 text-sm muted">{report.overall_summary}</p>
-                      {report.primary_focus ? <p className="mt-3 text-sm"><span className="font-medium">Primary focus:</span> {report.primary_focus}</p> : null}
+                    <div key={`${latestGenerated?.id || "draft"}-${report.driver_name}`} className="mobile-list-row">
+                      <p className="mobile-list-title">{report.canonical_driver_name || report.driver_name}</p>
+                      {report.headline ? <p className="mobile-list-meta text-blue-100">{report.headline}</p> : null}
+                      <p className="mt-2 text-sm muted">{report.overall_summary}</p>
+                      {report.primary_focus ? <p className="mt-2 text-sm"><span className="font-medium">Primary focus:</span> {report.primary_focus}</p> : null}
                     </div>
                   )) : (
-                    <div className="workspace-subtle-card p-4">
+                    <div className="mobile-list-row">
                       <p className="text-sm muted">Generate feedback to pull the latest report content into the mobile preview.</p>
                     </div>
                   )}
                   {generatedTakeaways.length ? (
-                    <div className="workspace-subtle-card p-4">
-                      <p className="text-sm font-medium">Key takeaways</p>
-                      <div className="mt-3 grid gap-2">
+                    <div className="mobile-list-row">
+                      <p className="mobile-list-title">Key takeaways</p>
+                      <div className="mobile-inline-metrics">
                         {generatedTakeaways.slice(0, 4).map((item, index) => (
                           <div key={`${item.driverName}-${index}`} className="session-debrief-row">
                             <span>{item.driverName}</span>
@@ -342,9 +341,9 @@ export default function ReportBuilderPanel({
                     </div>
                   ) : null}
                   {generatedActions.length ? (
-                    <div className="workspace-subtle-card p-4">
-                      <p className="text-sm font-medium">Action points</p>
-                      <div className="mt-3 grid gap-2">
+                    <div className="mobile-list-row">
+                      <p className="mobile-list-title">Action points</p>
+                      <div className="mobile-inline-metrics">
                         {generatedActions.slice(0, 4).map((item, index) => (
                           <div key={`${item.driverName}-action-${index}`} className="session-debrief-row">
                             <span>{item.driverName}</span>

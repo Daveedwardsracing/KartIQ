@@ -42,37 +42,37 @@ export function EventManager({
     return (
       <div className="workspace-page mobile-planning-page">
         <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
-          <div className="workspace-hero-copy max-w-3xl">
-            <p className="workspace-section-label">Mobile Events</p>
-            <h2 className="workspace-hero-title">{listTitle}</h2>
-            <p className="workspace-hero-text">{heading}</p>
+          <div className="workspace-hero-copy max-w-3xl mobile-compact-header">
+            <p className="mobile-compact-label">Mobile Events</p>
+            <h2 className="mobile-compact-title">{listTitle}</h2>
+            <p className="mobile-compact-text">{heading}</p>
           </div>
-          <div className="mobile-session-kpis">
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Events</p>
-              <p className="workspace-kpi-value">{filteredEvents.length}</p>
+          <div className="mobile-stat-strip">
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Events</p>
+              <p className="mobile-stat-chip-value">{filteredEvents.length}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Sessions</p>
-              <p className="workspace-kpi-value">{eventsStore.reduce((count, item) => count + (item.sessions?.length || 0), 0)}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Sessions</p>
+              <p className="mobile-stat-chip-value">{eventsStore.reduce((count, item) => count + (item.sessions?.length || 0), 0)}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Mode</p>
-              <p className="workspace-kpi-value">{isCreateMode ? "Create" : "Browse"}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Mode</p>
+              <p className="mobile-stat-chip-value">{isCreateMode ? "Create" : "Browse"}</p>
             </div>
           </div>
         </section>
 
         {isCreateMode ? (
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Event Editor</p>
-                <h3 className="mt-2 text-xl font-semibold">{editingEventId ? "Update event" : "Create event"}</h3>
+                <p className="mobile-section-title">{editingEventId ? "Update event" : "Create event"}</p>
+                <p className="mobile-section-note">Keep the editor light on the phone and save only the essentials.</p>
               </div>
               <span className="pill pill-neutral">{editingEventId ? "Editing" : "New"}</span>
             </div>
-            <form className="mt-4 grid gap-3" onSubmit={onSubmit}>
+            <form className="mobile-filter-stack" onSubmit={onSubmit}>
               <select className="workspace-field" value={eventDraft.venue} onChange={(event) => onChange((current) => ({ ...current, venue: event.target.value }))}>
                 <option value="">Select track / venue</option>
                 {tracksStore.map((track) => (
@@ -83,9 +83,9 @@ export function EventManager({
               <input className="workspace-field" placeholder="Session type" value={eventDraft.session_type} onChange={(event) => onChange((current) => ({ ...current, session_type: event.target.value }))} />
               <input className="workspace-field" type="date" value={eventDraft.start_date} onChange={(event) => onChange((current) => ({ ...current, start_date: event.target.value }))} />
               <input className="workspace-field" type="date" value={eventDraft.end_date} onChange={(event) => onChange((current) => ({ ...current, end_date: event.target.value }))} />
-              <div className="workspace-subtle-card p-4">
-                <p className="text-sm font-medium text-white">Assign drivers</p>
-                <div className="mt-3 workflow-chip-grid">
+              <div className="mobile-list-row">
+                <p className="mobile-list-title">Assign drivers</p>
+                <div className="mobile-chip-strip mt-3">
                   {driversStore.map((driver) => {
                     const checked = eventDraft.driver_ids.includes(driver.id);
                     return (
@@ -108,42 +108,47 @@ export function EventManager({
                   })}
                 </div>
               </div>
-              <div className="mobile-session-action-row">
-                <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" type="submit">{editingEventId ? "Save event" : "Create event"}</button>
-                {editingEventId ? <button className="workspace-ghost px-4 py-3 text-sm" onClick={onCancel} type="button">Cancel</button> : null}
+              <div className="mobile-toolbar">
+                <button className="workspace-primary text-white" type="submit">{editingEventId ? "Save event" : "Create event"}</button>
+                {editingEventId ? <button className="workspace-ghost" onClick={onCancel} type="button">Cancel</button> : null}
               </div>
             </form>
           </article>
         ) : null}
 
-        <article className="app-panel p-4">
-          <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+        <article className="mobile-section-card">
+          <div className="mobile-section-head">
             <div>
-              <p className="workspace-section-label">Event List</p>
-              <h3 className="mt-2 text-xl font-semibold">{listTitle}</h3>
+              <p className="mobile-section-title">{listTitle}</p>
+              <p className="mobile-section-note">Use the row actions to jump straight into planning.</p>
             </div>
             <span className="pill pill-neutral">{filteredEvents.length}</span>
           </div>
-          <div className="mt-4 grid gap-3">
+          <div className="mobile-list-stack">
             {filteredEvents.map((item) => (
-              <div key={item.id} className="workspace-subtle-card p-4">
+              <div key={item.id} className="mobile-list-row">
                 <button className="w-full text-left" onClick={() => onSelectEvent(item.id)} type="button">
-                  <p className="text-base font-semibold text-white">{item.name}</p>
-                  <p className="mt-1 text-sm muted">{item.venue} / {item.session_type} / {formatEventDateRange(item)}</p>
+                  <div className="mobile-list-row-main">
+                    <div>
+                      <p className="mobile-list-title">{item.name}</p>
+                      <p className="mobile-list-meta">{item.venue} / {item.session_type} / {formatEventDateRange(item)}</p>
+                    </div>
+                    <span className="pill pill-neutral">{item.sessions?.length || 0}</span>
+                  </div>
                 </button>
-                <div className="workflow-chip-grid mt-3">
+                <div className="mobile-chip-strip">
                   <span className="pill pill-neutral">{item.sessions?.length || 0} sessions</span>
                   <span className="pill pill-neutral">{item.drivers?.length || 0} drivers</span>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onSelectEvent(item.id)} type="button">Open</button>
-                  <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onCreateSession(item.id)} type="button">New session</button>
-                  <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onEdit(item)} type="button">Edit</button>
+                <div className="mobile-list-actions">
+                  <button className="workspace-ghost" onClick={() => onSelectEvent(item.id)} type="button">Open</button>
+                  <button className="workspace-primary text-white" onClick={() => onCreateSession(item.id)} type="button">New session</button>
+                  <button className="workspace-ghost" onClick={() => onEdit(item)} type="button">Edit</button>
                 </div>
               </div>
             ))}
             {!filteredEvents.length ? (
-              <div className="workspace-subtle-card p-6 text-sm muted">
+              <div className="mobile-list-row text-sm muted">
                 {isCreateMode ? "No events created yet. Use the editor above to add the first event." : `No events found in ${listTitle.toLowerCase()}.`}
               </div>
             ) : null}
@@ -300,43 +305,43 @@ export function SessionListPage({ eventsStore, sessionsStore, reportsStore, sele
     return (
       <div className="workspace-page mobile-planning-page">
         <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
-          <div className="workspace-hero-copy">
-            <p className="workspace-section-label">Mobile Sessions</p>
-            <h2 className="workspace-hero-title">{selectedEvent ? selectedEvent.name : "Choose an event"}</h2>
-            <p className="workspace-hero-text">
+          <div className="workspace-hero-copy mobile-compact-header">
+            <p className="mobile-compact-label">Mobile Sessions</p>
+            <h2 className="mobile-compact-title">{selectedEvent ? selectedEvent.name : "Choose an event"}</h2>
+            <p className="mobile-compact-text">
               {selectedEvent
                 ? `${selectedEvent.venue} / ${selectedEvent.session_type} / ${selectedEvent.date || "No date"}`
                 : "Go back to Events and choose the event you want to manage."}
             </p>
           </div>
-          <div className="mobile-session-kpis">
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Sessions</p>
-              <p className="workspace-kpi-value">{sessions.length}</p>
+          <div className="mobile-stat-strip">
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Sessions</p>
+              <p className="mobile-stat-chip-value">{sessions.length}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Uploads</p>
-              <p className="workspace-kpi-value">{eventSummary.uploadedCount}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Uploads</p>
+              <p className="mobile-stat-chip-value">{eventSummary.uploadedCount}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Need reports</p>
-              <p className="workspace-kpi-value">{eventSummary.needReportsCount}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Need reports</p>
+              <p className="mobile-stat-chip-value">{eventSummary.needReportsCount}</p>
             </div>
           </div>
-          <div className="mobile-session-action-row">
-            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onBackToEvents} type="button">Back</button>
-            {selectedEvent ? <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onRefreshAllWeather?.(selectedEvent.id)} type="button" disabled={loading || !sessions.length}>{loading ? "Refreshing..." : "Refresh forecasts"}</button> : null}
-            {selectedEvent ? <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onCreateSession(selectedEvent.id)} type="button">Create session</button> : null}
+          <div className="mobile-toolbar">
+            <button className="workspace-ghost" onClick={onBackToEvents} type="button">Back</button>
+            {selectedEvent ? <button className="workspace-ghost" onClick={() => onRefreshAllWeather?.(selectedEvent.id)} type="button" disabled={loading || !sessions.length}>{loading ? "Refreshing..." : "Refresh forecasts"}</button> : null}
+            {selectedEvent ? <button className="workspace-primary text-white" onClick={() => onCreateSession(selectedEvent.id)} type="button">Create session</button> : null}
           </div>
         </section>
 
-        <article className="app-panel p-4">
+        <article className="mobile-section-card">
           {selectedEvent ? (
-            <div className="grid gap-3">
+            <div className="mobile-list-stack">
               {eventSummary.attentionItems.length ? (
-                <div className="workspace-subtle-card p-4">
+                <div className="mobile-list-row">
                   <p className="text-sm font-medium text-white">Today’s attention list</p>
-                  <div className="mt-3 grid gap-2">
+                  <div className="mobile-inline-metrics">
                     {eventSummary.attentionItems.slice(0, 4).map((item) => (
                       <div key={`${item.sessionId}-${item.label}`} className="session-debrief-row">
                         <span>{item.sessionName}</span>
@@ -349,35 +354,39 @@ export function SessionListPage({ eventsStore, sessionsStore, reportsStore, sele
               {sessions.map((testSession) => {
                 const metrics = buildPlannedSessionMetrics(testSession, sessionsStore || [], reportsStore || []);
                 return (
-                  <div key={testSession.id} className="workspace-subtle-card p-4">
+                  <div key={testSession.id} className="mobile-list-row">
                     <button className="w-full text-left" onClick={() => onOpenSession(testSession)} type="button">
-                      <p className="text-base font-semibold text-white">{testSession.name}</p>
-                      <p className="mt-1 text-sm muted">{testSession.venue} / {testSession.session_type} / {testSession.date || "No date"}</p>
+                      <div className="mobile-list-row-main">
+                        <div>
+                          <p className="mobile-list-title">{testSession.name}</p>
+                          <p className="mobile-list-meta">{testSession.venue} / {testSession.session_type} / {testSession.date || "No date"}</p>
+                        </div>
+                        <span className={`pill planned-session-status planned-session-status-${testSession.status || "planned"}`}>{formatPlannedSessionStatus(testSession.status)}</span>
+                      </div>
                     </button>
-                    <div className="workflow-chip-grid mt-3">
+                    <div className="mobile-chip-strip">
                       <span className="pill pill-neutral">{testSession.drivers.length} drivers</span>
-                      <span className={`pill planned-session-status planned-session-status-${testSession.status || "planned"}`}>{formatPlannedSessionStatus(testSession.status)}</span>
                       {metrics.forecastStatusLabel ? <span className={`pill ${metrics.forecastStatusTone === "warn" ? "pill-warn" : "pill-neutral"}`}>{metrics.forecastStatusLabel}</span> : null}
                     </div>
                     {metrics.warnings.length ? (
-                      <div className="workflow-chip-grid mt-3">
+                      <div className="mobile-chip-strip">
                         {metrics.warnings.map((warning) => (
                           <span key={`${testSession.id}-${warning}`} className="pill pill-warn">{warning}</span>
                         ))}
                       </div>
                     ) : null}
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onOpenSession(testSession)} type="button">Open</button>
-                      <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onOpenUploadSession(testSession)} type="button">Upload</button>
-                      <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onEditSession(testSession)} type="button">Edit</button>
+                    <div className="mobile-list-actions">
+                      <button className="workspace-ghost" onClick={() => onOpenSession(testSession)} type="button">Open</button>
+                      <button className="workspace-primary text-white" onClick={() => onOpenUploadSession(testSession)} type="button">Upload</button>
+                      <button className="workspace-ghost" onClick={() => onEditSession(testSession)} type="button">Edit</button>
                     </div>
                   </div>
                 );
               })}
-              {!sessions.length ? <div className="workspace-subtle-card p-6 text-sm muted">No sessions created for this event yet. Create one to start the upload workflow.</div> : null}
+              {!sessions.length ? <div className="mobile-list-row text-sm muted">No sessions created for this event yet. Create one to start the upload workflow.</div> : null}
             </div>
           ) : (
-            <div className="workspace-subtle-card p-6 text-sm muted">No event selected yet.</div>
+            <div className="mobile-list-row text-sm muted">No event selected yet.</div>
           )}
         </article>
       </div>

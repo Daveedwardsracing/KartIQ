@@ -161,69 +161,74 @@ export function HistoryPanel({ sessions, selectedSessionId, selectedSessionDetai
     return (
       <div className="workspace-page mobile-history-page">
         <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
-          <div className="workspace-hero-copy max-w-3xl">
-            <p className="workspace-section-label">Mobile History</p>
-            <h2 className="workspace-hero-title">Reopen sessions quickly from the phone.</h2>
-            <p className="workspace-hero-text">Use a simpler archive view for the latest uploaded runs, saved reports, and quick reopen actions.</p>
+          <div className="workspace-hero-copy max-w-3xl mobile-compact-header">
+            <p className="mobile-compact-label">Mobile History</p>
+            <h2 className="mobile-compact-title">Recent runs</h2>
+            <p className="mobile-compact-text">A compact archive for quick reopen and review.</p>
           </div>
-          <div className="mobile-session-kpis">
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Saved sessions</p>
-              <p className="workspace-kpi-value">{sessions.length}</p>
+          <div className="mobile-stat-strip">
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Sessions</p>
+              <p className="mobile-stat-chip-value">{sessions.length}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Latest upload</p>
-              <p className="workspace-kpi-detail mt-2">{latestSession?.event_round || "None yet"}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Latest</p>
+              <p className="mobile-stat-chip-value">{latestSession ? "Ready" : "Empty"}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Saved reports</p>
-              <p className="workspace-kpi-value">{selectedSessionDetail?.reports?.length || 0}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Reports</p>
+              <p className="mobile-stat-chip-value">{selectedSessionDetail?.reports?.length || 0}</p>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-4">
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+        <div className="grid gap-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Archive</p>
-                <h3 className="mt-2 text-xl font-semibold">Latest runs first</h3>
+                <p className="mobile-section-title">Latest runs</p>
+                <p className="mobile-section-note">Most recent uploads at the top.</p>
               </div>
               <span className="pill pill-neutral">{sessions.length}</span>
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mobile-list-stack">
               {sessions.map((session) => (
-                <div key={session.id} className={`workspace-subtle-card p-4 ${selectedSessionId === session.id ? "ring-1 ring-blue-400/30" : ""}`}>
+                <div key={session.id} className={`mobile-list-row ${selectedSessionId === session.id ? "ring-1 ring-blue-400/30" : ""}`}>
                   <button className="w-full text-left" onClick={() => onSelectSession(session.id)} type="button">
-                    <p className="font-medium">{session.event_round || session.event_name || "Uploaded session"}</p>
-                    <p className="mt-1 text-sm muted">{[session.event_name, session.session_type, session.created_at].filter(Boolean).join(" / ")}</p>
+                    <div className="mobile-list-row-main">
+                      <div>
+                        <p className="mobile-list-title">{session.event_round || session.event_name || "Uploaded session"}</p>
+                        <p className="mobile-list-meta">{[session.event_name, session.session_type, session.created_at].filter(Boolean).join(" / ")}</p>
+                      </div>
+                      <span className="pill pill-neutral">{session.status || "uploaded"}</span>
+                    </div>
                   </button>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onOpenSession(session.id)} type="button">Open</button>
-                    <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onDeleteSession?.(session)} type="button">Delete</button>
+                  <div className="mobile-list-actions">
+                    <button className="workspace-primary text-white" onClick={() => onOpenSession(session.id)} type="button">Open</button>
+                    <button className="workspace-ghost" onClick={() => onDeleteSession?.(session)} type="button">Delete</button>
                   </div>
                 </div>
               ))}
             </div>
           </article>
 
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Selected Session</p>
-                <h3 className="mt-2 text-xl font-semibold">{selectedSessionDetail?.session?.event_round || "Choose a session"}</h3>
+                <p className="mobile-section-title">{selectedSessionDetail?.session?.event_round || "Choose a session"}</p>
+                <p className="mobile-section-note">Quick summary of the selected upload.</p>
               </div>
             </div>
             {selectedSessionDetail?.session ? (
-              <div className="mt-4 grid gap-3">
-                <div className="workspace-subtle-card p-4">
-                  <p className="text-sm font-medium">Session details</p>
-                  <p className="mt-2 text-sm muted">{[selectedSessionDetail.session.event_name, selectedSessionDetail.session.session_type, selectedSessionDetail.session.created_at].filter(Boolean).join(" / ")}</p>
+              <div className="mobile-list-stack">
+                <div className="mobile-list-row">
+                  <p className="mobile-list-title">Session details</p>
+                  <p className="mobile-list-meta">{[selectedSessionDetail.session.event_name, selectedSessionDetail.session.session_type, selectedSessionDetail.session.created_at].filter(Boolean).join(" / ")}</p>
                 </div>
                 {selectedSessionDetail.reports?.length ? (
-                  <div className="workspace-subtle-card p-4">
-                    <p className="text-sm font-medium">Saved reports</p>
-                    <div className="mt-3 grid gap-2">
+                  <div className="mobile-list-row">
+                    <p className="mobile-list-title">Saved reports</p>
+                    <div className="mobile-inline-metrics">
                       {selectedSessionDetail.reports.slice(0, 3).map((report) => (
                         <div key={report.id} className="session-debrief-row">
                           <span>{portalReportAudienceLabel(report.audience)}</span>
@@ -1516,29 +1521,29 @@ export function SessionResultsPage({
     return (
       <div className="workspace-page mobile-session-page">
         <section className="workspace-hero workspace-hero-premium mobile-session-hero">
-          <div className="workspace-hero-copy max-w-3xl">
-            <p className="workspace-section-label">Mobile Session</p>
-            <h2 className="workspace-hero-title">{session.event_round}</h2>
-            <p className="workspace-hero-text">{[session.event_name, session.session_type, session.created_at].filter(Boolean).join(" / ")}</p>
+          <div className="workspace-hero-copy max-w-3xl mobile-compact-header">
+            <p className="mobile-compact-label">Mobile Session</p>
+            <h2 className="mobile-compact-title">{session.event_round}</h2>
+            <p className="mobile-compact-text">{[session.event_name, session.session_type, session.created_at].filter(Boolean).join(" / ")}</p>
           </div>
-          <div className="mobile-session-kpis">
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">State</p>
-              <p className="workspace-kpi-value">{session.status || "uploaded"}</p>
+          <div className="mobile-stat-strip">
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">State</p>
+              <p className="mobile-stat-chip-value">{session.status || "uploaded"}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Drivers</p>
-              <p className="workspace-kpi-value">{session.driver_count || session.analysis?.drivers?.length || 0}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Drivers</p>
+              <p className="mobile-stat-chip-value">{session.driver_count || session.analysis?.drivers?.length || 0}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Reports</p>
-              <p className="workspace-kpi-value">{reports.length}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Reports</p>
+              <p className="mobile-stat-chip-value">{reports.length}</p>
             </div>
           </div>
-          <div className="mobile-session-action-row">
-            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onBack} type="button">Back</button>
-            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onOpenReportStudio} type="button">Report Studio</button>
-            <button className="workspace-danger px-4 py-3 text-sm" onClick={() => onDeleteSession?.(session)} type="button">Delete</button>
+          <div className="mobile-toolbar">
+            <button className="workspace-ghost" onClick={onBack} type="button">Back</button>
+            <button className="workspace-ghost" onClick={onOpenReportStudio} type="button">Studio</button>
+            <button className="workspace-danger" onClick={() => onDeleteSession?.(session)} type="button">Delete</button>
           </div>
         </section>
 
@@ -1552,24 +1557,24 @@ export function SessionResultsPage({
 
         {activeTab === "overview" ? (
           <div className="grid gap-4">
-            <article className="app-panel p-4">
+            <article className="mobile-section-card">
               <div className="mobile-summary-stack">
-                <div className="workspace-subtle-card p-4">
-                  <p className="workspace-section-label">Session Brief</p>
-                  <p className="mt-3 text-sm muted">
+                <div className="mobile-list-row">
+                  <p className="mobile-section-title">Session brief</p>
+                  <p className="mobile-section-note">
                     {overviewLeader
                       ? `${overviewLeader.name} is currently the benchmark lap in this upload.`
                       : "Use the mobile summary first, then jump into laps or publishing."}
                   </p>
-                  <div className="mt-4 chip-row">
+                  <div className="mobile-chip-strip">
                     {track?.name ? <span className="pill pill-neutral">{track.name}</span> : null}
                     {plannedSession ? <span className="pill pill-neutral">Setup linked</span> : null}
                     {reports.length ? <span className="pill pill-neutral">{reports.length} saved reports</span> : null}
                   </div>
                 </div>
-                <div className="workspace-subtle-card p-4">
-                  <p className="workspace-section-label">Telemetry readiness</p>
-                  <div className="mt-4 grid gap-2">
+                <div className="mobile-list-row">
+                  <p className="mobile-section-title">Telemetry readiness</p>
+                  <div className="mobile-inline-metrics">
                     <div className="session-debrief-row">
                       <span>GPS</span>
                       <span>{telemetryReadiness.gps ? "Ready" : "Missing"}</span>
@@ -1591,23 +1596,23 @@ export function SessionResultsPage({
               </div>
             </article>
 
-            <article className="app-panel p-4">
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+            <article className="mobile-section-card">
+              <div className="mobile-section-head">
                 <div>
-                  <p className="workspace-section-label">Driver Snapshot</p>
-                  <h3 className="mt-2 text-xl font-semibold">Fastest laps at a glance</h3>
+                  <p className="mobile-section-title">Driver snapshot</p>
+                  <p className="mobile-section-note">Fastest laps at a glance.</p>
                 </div>
                 {comparisonLeader ? <span className="pill">{comparisonLeader.name} leads</span> : null}
               </div>
-              <div className="mt-4 grid gap-3">
+              <div className="mobile-list-stack">
                 {overviewDrivers.map((driver) => {
                   const delta = overviewLeader?.bestLap && driver.bestLap ? driver.bestLap - overviewLeader.bestLap : null;
                   return (
-                    <div key={`${driver.id}-mobile-overview`} className="workspace-subtle-card p-4">
-                      <div className="flex items-center justify-between gap-3">
+                    <div key={`${driver.id}-mobile-overview`} className="mobile-list-row">
+                      <div className="mobile-list-row-main">
                         <div>
-                          <p className="font-medium">{driver.name}</p>
-                          <p className="mt-1 text-sm muted">{driver.lapCount} displayed laps</p>
+                          <p className="mobile-list-title">{driver.name}</p>
+                          <p className="mobile-list-meta">{driver.lapCount} displayed laps</p>
                         </div>
                         <span className="pill pill-neutral">{delta && delta > 0 ? `+${delta.toFixed(3)}s` : "Benchmark"}</span>
                       </div>
@@ -1636,25 +1641,25 @@ export function SessionResultsPage({
             </article>
 
             {plannedSession?.drivers?.length ? (
-              <article className="app-panel p-4">
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <article className="mobile-section-card">
+                <div className="mobile-section-head">
                   <div>
-                    <p className="workspace-section-label">Setup Context</p>
-                    <h3 className="mt-2 text-xl font-semibold">Linked session setups</h3>
+                    <p className="mobile-section-title">Setup context</p>
+                    <p className="mobile-section-note">Linked session setups.</p>
                   </div>
                   <span className="pill pill-neutral">{plannedSession.drivers.length} drivers</span>
                 </div>
-                <div className="mt-4 grid gap-3">
+                <div className="mobile-list-stack">
                   {plannedSession.drivers.map((driver) => (
-                    <div key={`${driver.id}-mobile-setup`} className="workspace-subtle-card p-4">
-                      <div className="flex items-center justify-between gap-3">
+                    <div key={`${driver.id}-mobile-setup`} className="mobile-list-row">
+                      <div className="mobile-list-row-main">
                         <div>
-                          <p className="font-medium">{driver.name}</p>
-                          <p className="text-sm muted">{driver.class_name || "No class"}</p>
+                          <p className="mobile-list-title">{driver.name}</p>
+                          <p className="mobile-list-meta">{driver.class_name || "No class"}</p>
                         </div>
                         <span className="pill pill-neutral">Setup</span>
                       </div>
-                      <div className="mt-4 grid gap-2">
+                      <div className="mobile-inline-metrics">
                         {buildSetupSummary(driver.setup).slice(0, 4).map(([label, value]) => (
                           <div key={`${driver.id}-${label}`} className="session-debrief-row">
                             <span>{label}</span>
@@ -1673,11 +1678,11 @@ export function SessionResultsPage({
         {activeTab === "lap-times" ? (
           <div className="grid gap-4">
             {telemetryDriverRows.map((driver) => (
-              <article key={`${driver.id}-mobile-laps`} className="app-panel p-4">
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <article key={`${driver.id}-mobile-laps`} className="mobile-section-card">
+                <div className="mobile-section-head">
                   <div>
-                    <p className="workspace-section-label">{driver.name}</p>
-                    <h3 className="mt-2 text-xl font-semibold">Lap summary</h3>
+                    <p className="mobile-section-title">{driver.name}</p>
+                    <p className="mobile-section-note">Lap summary</p>
                   </div>
                   <div className="chip-row">
                     <span className="pill">{formatMetric(driver.bestLap)} best</span>
@@ -1702,13 +1707,13 @@ export function SessionResultsPage({
                     <p className="workspace-kpi-detail mt-2">{formatMetric(driver.maxRpm)}</p>
                   </div>
                 </div>
-                <div className="mt-4 grid gap-2">
+                <div className="mobile-list-stack">
                   {driver.lapRows.slice(0, 6).map((lap) => (
-                    <div key={`${driver.id}-${lap.label}-mobile-row`} className={`workspace-subtle-card p-3 ${lap.isBest ? "ring-1 ring-blue-400/30" : ""}`}>
-                      <div className="flex items-center justify-between gap-3">
+                    <div key={`${driver.id}-${lap.label}-mobile-row`} className={`mobile-list-row ${lap.isBest ? "ring-1 ring-blue-400/30" : ""}`}>
+                      <div className="mobile-list-row-main">
                         <div>
-                          <p className="font-medium">{lap.label}</p>
-                          <p className="text-sm muted">{lap.delta === 0 ? "Best lap" : `+${lap.delta.toFixed(3)}s from best`}</p>
+                          <p className="mobile-list-title">{lap.label}</p>
+                          <p className="mobile-list-meta">{lap.delta === 0 ? "Best lap" : `+${lap.delta.toFixed(3)}s from best`}</p>
                         </div>
                         <div className="text-right">
                           <p className="font-medium">{formatMetric(lap.time)}</p>
@@ -1725,15 +1730,15 @@ export function SessionResultsPage({
 
         {activeTab === "reports" ? (
           <div className="grid gap-4">
-            <article className="app-panel p-4">
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+            <article className="mobile-section-card">
+              <div className="mobile-section-head">
                 <div>
-                  <p className="workspace-section-label">Publishing</p>
-                  <h3 className="mt-2 text-xl font-semibold">Generate and share</h3>
+                  <p className="mobile-section-title">Publishing</p>
+                  <p className="mobile-section-note">Generate and share.</p>
                 </div>
                 <span className="pill pill-neutral">{reports.length} reports</span>
               </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="mobile-toolbar">
                 <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" onClick={onGenerateFeedback} type="button" disabled={loading}>
                   {loading ? "Generating..." : "Generate report"}
                 </button>

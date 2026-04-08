@@ -276,59 +276,59 @@ export default function SetupDatabasePage({
     return (
       <div className="workspace-page mobile-setup-db-page">
         <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
-          <div className="workspace-hero-copy">
-            <p className="workspace-section-label">Mobile Setup Database</p>
-            <h2 className="workspace-hero-title">Browse saved setup patterns on the phone.</h2>
-            <p className="workspace-hero-text">Use a simpler mobile view for track baselines, filtered setup records, quick comparisons, and AI setup questions.</p>
+          <div className="workspace-hero-copy mobile-compact-header">
+            <p className="mobile-compact-label">Mobile Setup Database</p>
+            <h2 className="mobile-compact-title">Browse saved setup patterns on the phone.</h2>
+            <p className="mobile-compact-text">Use a simpler mobile view for track baselines, filtered setup records, quick comparisons, and AI setup questions.</p>
           </div>
-          <div className="mobile-session-kpis">
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Tracks</p>
-              <p className="workspace-kpi-value">{setupDatabase?.total_tracks || 0}</p>
+          <div className="mobile-stat-strip">
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Tracks</p>
+              <p className="mobile-stat-chip-value">{setupDatabase?.total_tracks || 0}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Setups</p>
-              <p className="workspace-kpi-value">{setupDatabase?.total_entries || 0}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Setups</p>
+              <p className="mobile-stat-chip-value">{setupDatabase?.total_entries || 0}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Uploads</p>
-              <p className="workspace-kpi-value">{totalUploads}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Uploads</p>
+              <p className="mobile-stat-chip-value">{totalUploads}</p>
             </div>
           </div>
         </section>
 
         <div className="grid gap-4">
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Track</p>
-                <h3 className="mt-2 text-xl font-semibold">{selectedTrack?.track_name || "Choose a track"}</h3>
+                <p className="mobile-section-title">{selectedTrack?.track_name || "Choose a track"}</p>
+                <p className="mobile-section-note">Keep the track selector and best-known baseline visible first.</p>
               </div>
               <span className="pill pill-neutral">{trackOptions.length}</span>
             </div>
-            <select className="workspace-field mt-4" value={selectedTrackName} onChange={(event) => setSelectedTrackName(event.target.value)}>
+            <select className="workspace-field" value={selectedTrackName} onChange={(event) => setSelectedTrackName(event.target.value)}>
               {trackOptions.map((trackName) => <option key={trackName} value={trackName}>{trackName}</option>)}
             </select>
             {selectedTrack ? (
               <>
-                <div className="mt-4 mobile-session-stats-grid">
-                  <div className="workspace-kpi">
-                    <p className="workspace-kpi-label">Best lap setup</p>
-                    <p className="workspace-kpi-detail mt-2">{selectedTrack.leaders?.best_lap?.driver_name || "No leader yet"}</p>
+                <div className="mobile-inline-metrics">
+                  <div className="session-debrief-row">
+                    <span>Best lap setup</span>
+                    <span>{selectedTrack.leaders?.best_lap?.driver_name || "No leader yet"}</span>
                   </div>
-                  <div className="workspace-kpi">
-                    <p className="workspace-kpi-label">Best sector sum</p>
-                    <p className="workspace-kpi-detail mt-2">{selectedTrack.leaders?.best_sector_sum?.driver_name || "No leader yet"}</p>
+                  <div className="session-debrief-row">
+                    <span>Best sector sum</span>
+                    <span>{selectedTrack.leaders?.best_sector_sum?.driver_name || "No leader yet"}</span>
                   </div>
-                  <div className="workspace-kpi">
-                    <p className="workspace-kpi-label">Top speed leader</p>
-                    <p className="workspace-kpi-detail mt-2">{selectedTrack.leaders?.top_speed?.driver_name || "No leader yet"}</p>
+                  <div className="session-debrief-row">
+                    <span>Top speed leader</span>
+                    <span>{selectedTrack.leaders?.top_speed?.driver_name || "No leader yet"}</span>
                   </div>
                 </div>
-                <div className="workspace-subtle-card mt-4 p-4">
-                  <p className="text-sm font-medium text-white">Recommended baseline</p>
-                  <p className="mt-2 text-sm muted">{baselineDraft.label || "Recommended baseline"}</p>
-                  <div className="mt-3 grid gap-2">
+                <div className="mobile-list-row mt-3">
+                  <p className="mobile-list-title">Recommended baseline</p>
+                  <p className="mobile-list-meta">{baselineDraft.label || "Recommended baseline"}</p>
+                  <div className="mobile-inline-metrics">
                     {Object.entries(baselineDraft.setup || {}).slice(0, 6).map(([field, value]) => (
                       <div key={`mobile-baseline-${field}`} className="session-debrief-row">
                         <span>{formatFieldLabel(field)}</span>
@@ -341,15 +341,15 @@ export default function SetupDatabasePage({
             ) : null}
           </article>
 
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Filters</p>
-                <h3 className="mt-2 text-xl font-semibold">Narrow the setup bank</h3>
+                <p className="mobile-section-title">Filters</p>
+                <p className="mobile-section-note">Narrow the setup bank without the heavier desktop controls.</p>
               </div>
               <span className="pill pill-neutral">{filteredEntries.length}</span>
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mobile-filter-stack">
               <input className="workspace-field" placeholder="Search driver, session, or conditions" type="text" value={search} onChange={(event) => setSearch(event.target.value)} />
               <select className="workspace-field" value={classFilter} onChange={(event) => setClassFilter(event.target.value)}>
                 <option value="">All classes</option>
@@ -366,23 +366,23 @@ export default function SetupDatabasePage({
             </div>
           </article>
 
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Setups</p>
-                <h3 className="mt-2 text-xl font-semibold">Filtered entries</h3>
+                <p className="mobile-section-title">Filtered entries</p>
+                <p className="mobile-section-note">Compact rows keep comparison usable on a phone.</p>
               </div>
               <span className="pill pill-neutral">{filteredEntries.length}</span>
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mobile-list-stack">
               {filteredEntries.map((entry) => {
                 const compareSelected = compareIds.includes(entry.id);
                 return (
-                  <div key={entry.id} className="workspace-subtle-card p-4">
-                    <div className="flex items-start justify-between gap-3">
+                  <div key={entry.id} className="mobile-list-row">
+                    <div className="mobile-list-row-main">
                       <div>
-                        <p className="font-medium">{entry.driver_name}</p>
-                        <p className="mt-1 text-sm muted">{[entry.session_name, entry.session_type, entry.session_date].filter(Boolean).join(" / ")}</p>
+                        <p className="mobile-list-title">{entry.driver_name}</p>
+                        <p className="mobile-list-meta">{[entry.session_name, entry.session_type, entry.session_date].filter(Boolean).join(" / ")}</p>
                       </div>
                       <label className={`pill selection-pill ${compareSelected ? "is-selected" : "pill-neutral"} cursor-pointer`}>
                         <input
@@ -401,12 +401,12 @@ export default function SetupDatabasePage({
                         <span>Compare</span>
                       </label>
                     </div>
-                    <div className="workflow-chip-grid mt-3">
+                    <div className="mobile-chip-strip">
                       {entry.best_result?.is_best_lap_leader ? <span className="pill">Best lap</span> : null}
                       {entry.best_result?.is_best_sector_sum_leader ? <span className="pill">Best sectors</span> : null}
                       {entry.best_result?.is_top_speed_leader ? <span className="pill">Top speed</span> : null}
                     </div>
-                    <div className="mt-3 grid gap-2">
+                    <div className="mobile-inline-metrics">
                       {Object.entries(entry.setup || {}).slice(0, 5).map(([field, value]) => (
                         <div key={`${entry.id}-${field}`} className="session-debrief-row">
                           <span>{formatFieldLabel(field)}</span>
@@ -414,10 +414,10 @@ export default function SetupDatabasePage({
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <button className="workspace-ghost px-4 py-3 text-sm" type="button" onClick={() => onOpenPlannedSession(entry.test_session_id)}>Open planned session</button>
-                      <button className="workspace-ghost px-4 py-3 text-sm" type="button" onClick={() => onOpenUploadSession(entry.test_session_id)}>Open upload flow</button>
-                      <button className="workspace-primary px-4 py-3 text-sm text-white" type="button" onClick={() => handlePinBaselineFromEntry(entry)}>Pin baseline</button>
+                    <div className="mobile-list-actions">
+                      <button className="workspace-ghost" type="button" onClick={() => onOpenPlannedSession(entry.test_session_id)}>Open planned session</button>
+                      <button className="workspace-ghost" type="button" onClick={() => onOpenUploadSession(entry.test_session_id)}>Open upload flow</button>
+                      <button className="workspace-primary text-white" type="button" onClick={() => handlePinBaselineFromEntry(entry)}>Pin baseline</button>
                     </div>
                   </div>
                 );

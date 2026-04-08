@@ -99,8 +99,8 @@ describe("mobile history and session views", () => {
     );
 
     expect(screen.getByText("Mobile History")).toBeInTheDocument();
-    expect(screen.getByText("Reopen sessions quickly from the phone.")).toBeInTheDocument();
-    expect(screen.getByText("Latest runs first")).toBeInTheDocument();
+    expect(screen.getByText("A compact archive for quick reopen and review.")).toBeInTheDocument();
+    expect(screen.getByText("Latest runs")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open" })).toBeInTheDocument();
   });
 
@@ -132,13 +132,13 @@ describe("mobile history and session views", () => {
     expect(screen.getByRole("button", { name: "Overview" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Laps" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Publishing" })).toBeInTheDocument();
-    expect(screen.getByText("Fastest laps at a glance")).toBeInTheDocument();
+    expect(screen.getByText("Fastest laps at a glance.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Laps" }));
     expect(screen.getByText("Lap summary")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Publishing" }));
-    expect(screen.getByText("Generate and share")).toBeInTheDocument();
+    expect(screen.getByText("Generate and share.")).toBeInTheDocument();
     expect(screen.getAllByText("Publish to driver").length).toBeGreaterThan(0);
   });
 });

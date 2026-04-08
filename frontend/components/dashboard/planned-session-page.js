@@ -121,60 +121,60 @@ export function PlannedSessionPage({
     return (
       <div className="workspace-page mobile-planning-page">
         <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
-          <div className="workspace-hero-copy">
-            <p className="workspace-section-label">Mobile Planned Session</p>
-            <h2 className="workspace-hero-title">{selectedTestSession.name}</h2>
-            <p className="workspace-hero-text">
+          <div className="workspace-hero-copy mobile-compact-header">
+            <p className="mobile-compact-label">Mobile Planned Session</p>
+            <h2 className="mobile-compact-title">{selectedTestSession.name}</h2>
+            <p className="mobile-compact-text">
               {[selectedTestSession.venue, selectedTestSession.session_type, selectedTestSession.date || "No date"].filter(Boolean).join(" / ")}
             </p>
           </div>
-          <div className="mobile-session-kpis">
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Drivers</p>
-              <p className="workspace-kpi-value">{selectedTestSession.drivers.length}</p>
+          <div className="mobile-stat-strip">
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Drivers</p>
+              <p className="mobile-stat-chip-value">{selectedTestSession.drivers.length}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Uploads</p>
-              <p className="workspace-kpi-value">{linkedUploadedSessions.length}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Uploads</p>
+              <p className="mobile-stat-chip-value">{linkedUploadedSessions.length}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">State</p>
-              <p className="workspace-kpi-value">{formatPlannedSessionStatus(sessionDraft.status)}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">State</p>
+              <p className="mobile-stat-chip-value">{formatPlannedSessionStatus(sessionDraft.status)}</p>
             </div>
           </div>
-          <div className="mobile-session-action-row">
-            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onBack} type="button">Back</button>
-            <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onOpenUploadSession(selectedTestSession)} type="button">Upload</button>
-            <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onEditSession(selectedTestSession)} type="button">Edit</button>
+          <div className="mobile-toolbar">
+            <button className="workspace-ghost" onClick={onBack} type="button">Back</button>
+            <button className="workspace-primary text-white" onClick={() => onOpenUploadSession(selectedTestSession)} type="button">Upload</button>
+            <button className="workspace-ghost" onClick={() => onEditSession(selectedTestSession)} type="button">Edit</button>
           </div>
         </section>
 
-        <article className="app-panel p-4">
-          <div className="grid gap-3">
+        <article className="mobile-section-card">
+          <div className="mobile-list-stack">
             {plannedSessionMetrics.warnings.length ? (
-              <div className="workflow-chip-grid">
+              <div className="mobile-chip-strip">
                 {plannedSessionMetrics.warnings.map((warning) => (
                   <span key={`${selectedTestSession.id}-${warning}`} className="pill pill-warn">{warning}</span>
                 ))}
               </div>
             ) : (
-              <div className="workflow-chip-grid">
+              <div className="mobile-chip-strip">
                 <span className="pill">Session looks operationally tidy</span>
               </div>
             )}
 
-            <div className="workspace-subtle-card p-4">
-              <div className="flex items-center justify-between gap-3">
+            <div className="mobile-list-row">
+              <div className="mobile-list-row-main">
                 <div>
-                  <p className="workspace-section-label">Forecast</p>
-                  <p className="mt-2 text-sm muted">
+                  <p className="mobile-list-title">Forecast</p>
+                  <p className="mobile-list-meta">
                     {forecast?.summary
                       ? `${forecast.summary} / ${forecast.location_name || selectedTestSession.venue}`
                       : "No forecast saved yet for this session."}
                   </p>
                 </div>
                 <button
-                  className="workspace-ghost px-4 py-3 text-sm"
+                  className="workspace-ghost"
                   disabled={!selectedTestSession?.date || !selectedTestSession?.venue || loading}
                   onClick={() => onRefreshWeather?.(selectedTestSession.id)}
                   type="button"
@@ -185,7 +185,7 @@ export function PlannedSessionPage({
               {forecast?.summary ? (
                 <>
                   <WeatherForecastVisual forecast={forecast} forecastState={forecastState} />
-                  <div className="mt-4 grid gap-2">
+                  <div className="mobile-inline-metrics">
                     <div className="session-debrief-row">
                       <span>Session window</span>
                       <span>{formatSessionWindow(selectedTestSession)}</span>
@@ -199,9 +199,9 @@ export function PlannedSessionPage({
               ) : null}
             </div>
 
-            <div className="workspace-subtle-card p-4">
-              <p className="workspace-section-label">Session Notes</p>
-              <div className="mt-4 grid gap-3">
+            <div className="mobile-list-row">
+              <p className="mobile-list-title">Session notes</p>
+              <div className="mobile-filter-stack mt-3">
                 <KartSetupField label="Status">
                   <select className="workspace-field" value={sessionDraft.status} onChange={(event) => { setSessionDraft((current) => ({ ...current, status: event.target.value })); setSessionDirty(true); }}>
                     {PLANNED_SESSION_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
@@ -217,28 +217,28 @@ export function PlannedSessionPage({
                   <textarea className="workspace-field min-h-[110px]" placeholder="Session goals and reminders." value={sessionDraft.coach_notes} onChange={(event) => { setSessionDraft((current) => ({ ...current, coach_notes: event.target.value })); setSessionDirty(true); }} />
                 </KartSetupField>
               </div>
-              <div className="mt-4 flex justify-end">
-                <button className="workspace-primary px-4 py-3 text-sm text-white" disabled={!sessionDirty || loading} onClick={handleSaveSessionDetails} type="button">
+              <div className="mobile-list-actions">
+                <button className="workspace-primary text-white" disabled={!sessionDirty || loading} onClick={handleSaveSessionDetails} type="button">
                   {loading ? "Saving..." : "Save details"}
                 </button>
               </div>
             </div>
 
-            <div className="workspace-subtle-card p-4">
-              <div className="flex items-center justify-between gap-3">
+            <div className="mobile-list-row">
+              <div className="mobile-list-row-main">
                 <div>
-                  <p className="workspace-section-label">Drivers</p>
-                  <p className="mt-2 text-sm muted">Assigned to this session.</p>
+                  <p className="mobile-list-title">Drivers</p>
+                  <p className="mobile-list-meta">Assigned to this session.</p>
                 </div>
                 <span className="pill pill-neutral">{selectedTestSession.drivers.length}</span>
               </div>
-              <div className="mt-4 grid gap-3">
+              <div className="mobile-list-stack mt-3">
                 {selectedTestSession.drivers.map((driver) => (
-                  <div key={`${driver.id}-mobile-driver`} className="workspace-subtle-card p-3">
-                    <div className="flex items-center justify-between gap-3">
+                  <div key={`${driver.id}-mobile-driver`} className="mobile-list-row">
+                    <div className="mobile-list-row-main">
                       <div>
-                        <p className="font-medium">{driver.name}</p>
-                        <p className="text-sm muted">{driver.class_name || "No class"}</p>
+                        <p className="mobile-list-title">{driver.name}</p>
+                        <p className="mobile-list-meta">{driver.class_name || "No class"}</p>
                       </div>
                       <span className="pill pill-neutral">{driver.setup ? "Setup saved" : "Setup pending"}</span>
                     </div>
@@ -247,27 +247,27 @@ export function PlannedSessionPage({
               </div>
             </div>
 
-            <div className="workspace-subtle-card p-4">
-              <div className="flex items-center justify-between gap-3">
+            <div className="mobile-list-row">
+              <div className="mobile-list-row-main">
                 <div>
-                  <p className="workspace-section-label">Uploaded Runs</p>
-                  <p className="mt-2 text-sm muted">Runs linked back to this plan.</p>
+                  <p className="mobile-list-title">Uploaded runs</p>
+                  <p className="mobile-list-meta">Runs linked back to this plan.</p>
                 </div>
                 <span className="pill pill-neutral">{linkedUploadedSessions.length}</span>
               </div>
-              <div className="mt-4 grid gap-3">
+              <div className="mobile-list-stack mt-3">
                 {linkedUploadedSessions.length ? linkedUploadedSessions.map((sessionRecord) => (
-                  <div key={sessionRecord.id} className="workspace-subtle-card p-3">
-                    <div className="flex items-center justify-between gap-3">
+                  <div key={sessionRecord.id} className="mobile-list-row">
+                    <div className="mobile-list-row-main">
                       <div>
-                        <p className="font-medium">{sessionRecord.event_round || sessionRecord.event_name || "Uploaded session"}</p>
-                        <p className="text-sm muted">{[sessionRecord.session_type, sessionRecord.created_at].filter(Boolean).join(" / ")}</p>
+                        <p className="mobile-list-title">{sessionRecord.event_round || sessionRecord.event_name || "Uploaded session"}</p>
+                        <p className="mobile-list-meta">{[sessionRecord.session_type, sessionRecord.created_at].filter(Boolean).join(" / ")}</p>
                       </div>
-                      <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onOpenUploadedSession(sessionRecord.id)} type="button">Open</button>
+                      <button className="workspace-ghost" onClick={() => onOpenUploadedSession(sessionRecord.id)} type="button">Open</button>
                     </div>
                   </div>
                 )) : (
-                  <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/20 p-5">
+                  <div className="mobile-list-row">
                     <p className="text-sm font-medium text-white">No uploaded runs linked yet.</p>
                     <p className="mt-2 text-sm muted">Use Upload when the drivers come in.</p>
                   </div>

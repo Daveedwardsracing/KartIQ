@@ -3411,37 +3411,37 @@ function ChatBotPanel({ messages, chatInput, onChangeInput, onSubmit, model, pro
     return (
       <section className="workspace-page mobile-chat-page">
         <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
-          <div className="workspace-hero-copy">
-            <p className="workspace-section-label">Mobile Chat</p>
-            <h2 className="workspace-hero-title">Ask the assistant from the phone.</h2>
-            <p className="workspace-hero-text">A tighter chat view for quick coaching questions, workflow help, and setup or telemetry prompts between runs.</p>
+          <div className="workspace-hero-copy mobile-compact-header">
+            <p className="mobile-compact-label">Mobile Chat</p>
+            <h2 className="mobile-compact-title">Ask the assistant from the phone.</h2>
+            <p className="mobile-compact-text">A tighter chat view for quick coaching questions, workflow help, and setup or telemetry prompts between runs.</p>
           </div>
-          <div className="mobile-session-kpis">
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Provider</p>
-              <p className="workspace-kpi-value">{provider === "openai" ? "OpenAI" : "Ollama"}</p>
+          <div className="mobile-stat-strip">
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Provider</p>
+              <p className="mobile-stat-chip-value">{provider === "openai" ? "OpenAI" : "Ollama"}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Model</p>
-              <p className="workspace-kpi-detail mt-2">{model || "Not set"}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Model</p>
+              <p className="mobile-stat-chip-value">{model || "Not set"}</p>
             </div>
-            <div className="workspace-kpi">
-              <p className="workspace-kpi-label">Messages</p>
-              <p className="workspace-kpi-value">{messages.length}</p>
+            <div className="mobile-stat-chip">
+              <p className="mobile-stat-chip-label">Messages</p>
+              <p className="mobile-stat-chip-value">{messages.length}</p>
             </div>
           </div>
         </section>
 
         <div className="grid gap-4">
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Conversation</p>
-                <h3 className="mt-2 text-xl font-semibold">{provider === "openai" ? "OpenAI assistant" : "Local Ollama assistant"}</h3>
+                <p className="mobile-section-title">{provider === "openai" ? "OpenAI assistant" : "Local Ollama assistant"}</p>
+                <p className="mobile-section-note">Compact conversation view for quick in-garage questions.</p>
               </div>
               <span className="pill">{provider === "openai" ? `OpenAI - ${model || "No model selected"}` : model || "No model selected"}</span>
             </div>
-            <div className="chat-thread mt-4">
+            <div className="chat-thread">
               {messages.map((message, index) => (
                 <div key={`${message.role}-${index}`} className={`chat-bubble ${message.role === "assistant" ? "assistant" : "user"}`}>
                   <p className="chat-role">{message.role === "assistant" ? "Assistant" : "You"}</p>
@@ -3455,34 +3455,34 @@ function ChatBotPanel({ messages, chatInput, onChangeInput, onSubmit, model, pro
                 </div>
               ) : null}
             </div>
-            <form className="mt-4 grid gap-3" onSubmit={onSubmit}>
+            <form className="mobile-filter-stack mt-3" onSubmit={onSubmit}>
               <textarea
                 className="workspace-field min-h-[120px]"
                 placeholder="Ask about drivers, tracks, reports, event workflow, or telemetry..."
                 value={chatInput}
                 onChange={(event) => onChangeInput(event.target.value)}
               />
-              <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" disabled={loading || !chatInput.trim()} type="submit">
+              <button className="workspace-primary text-white" disabled={loading || !chatInput.trim()} type="submit">
                 Send message
               </button>
             </form>
           </article>
 
-          <article className="app-panel p-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <article className="mobile-section-card">
+            <div className="mobile-section-head">
               <div>
-                <p className="workspace-section-label">Quick Prompts</p>
-                <h3 className="mt-2 text-xl font-semibold">Start with something useful</h3>
+                <p className="mobile-section-title">Quick prompts</p>
+                <p className="mobile-section-note">Tap a prompt, tweak it if needed, and send.</p>
               </div>
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mobile-list-stack">
               {[
                 "What should I look for when comparing two junior drivers at PF International?",
                 "Help me plan a Saturday practice workflow for four drivers.",
                 "What settings in this app should I configure before real UniPro files arrive?",
                 "How should I structure corner notes so later GPS analysis is useful?",
               ].map((prompt) => (
-                <button key={prompt} className="workspace-subtle-card p-4 text-left" type="button" onClick={() => onChangeInput(prompt)}>
+                <button key={prompt} className="mobile-quick-prompt" type="button" onClick={() => onChangeInput(prompt)}>
                   <p className="text-sm">{prompt}</p>
                 </button>
               ))}

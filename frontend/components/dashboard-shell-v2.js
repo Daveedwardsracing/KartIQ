@@ -1746,6 +1746,8 @@ export default function DashboardShellV2({
         role: session?.role || "",
         session_id: selectedSessionId || "",
         test_session_id: formState.testSessionId || "",
+        selected_event_id: selectedPlannerEventId || "",
+        current_screen: screen,
         use_retrieval: appSettings.aiRetrievalEnabled,
         use_memory: appSettings.aiMemoryEnabled,
       });
@@ -1830,6 +1832,8 @@ export default function DashboardShellV2({
       role: session?.role || "",
       session_id: selectedSessionId || "",
       test_session_id: formState.testSessionId || "",
+      selected_event_id: selectedPlannerEventId || "",
+      current_screen: screen,
       use_retrieval: appSettings.aiRetrievalEnabled,
       use_memory: appSettings.aiMemoryEnabled,
     });

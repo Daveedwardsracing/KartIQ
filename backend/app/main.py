@@ -811,6 +811,8 @@ async def ai_chat(payload: ChatRequest):
             role=payload.role,
             session_id=payload.session_id,
             test_session_id=payload.test_session_id,
+            selected_event_id=payload.selected_event_id,
+            current_screen=payload.current_screen,
             use_retrieval=payload.use_retrieval,
             use_memory=payload.use_memory,
         )

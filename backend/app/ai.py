@@ -6,13 +6,18 @@ from typing import Any
 import httpx
 
 from .storage import (
+    get_database_health,
     get_app_settings,
+    get_event,
     get_test_session,
     get_uploaded_session,
+    list_auth_audit_log,
     list_ai_chat_messages,
     list_ai_memory_entries,
+    list_database_backups,
     list_coaching_notes,
     list_drivers,
+    list_email_delivery_log,
     list_events,
     list_generated_reports,
     list_setup_database,
@@ -580,6 +585,8 @@ def build_retrieval_context(
     role: str = "",
     session_id: str = "",
     test_session_id: str = "",
+    selected_event_id: str = "",
+    current_screen: str = "",
     use_retrieval: bool = True,
     use_memory: bool = True,
 ) -> dict:
@@ -599,6 +606,11 @@ def build_retrieval_context(
         "track_library": [],
         "recent_events": [],
         "setup_database": [],
+        "all_planned_sessions": [],
+        "current_event": {},
+        "current_event_sessions": [],
+        "app_overview": {},
+        "system_status": {},
     }
     if use_memory:
         context["memories"] = list_ai_memory_entries(user_account_id=user_account_id, email=email, role=role)[:8]
@@ -622,6 +634,33 @@ def build_retrieval_context(
     }
 
     uploaded_sessions = list_uploaded_sessions()
+    planned_sessions = list_test_sessions()
+    events = list_events()
+    reports = list_generated_reports(include_reports=False)
+    drivers = list_drivers()
+    accounts = list_user_accounts()
+    tracks = list_tracks()
+    setup_database = list_setup_database()
+
+    context["app_overview"] = {
+        "current_screen": current_screen,
+        "uploaded_session_count": len(uploaded_sessions),
+        "planned_session_count": len(planned_sessions),
+        "event_count": len(events),
+        "report_count": len(reports),
+        "driver_count": len(drivers),
+        "account_count": len(accounts),
+        "track_count": len(tracks),
+        "setup_database_track_count": setup_database.get("total_tracks", 0),
+        "setup_database_entry_count": setup_database.get("total_entries", 0),
+    }
+    context["system_status"] = {
+        "database": get_database_health(),
+        "backup_count": len(list_database_backups()),
+        "recent_email_count": len(list_email_delivery_log(limit=10)),
+        "recent_auth_events": len(list_auth_audit_log(limit=10)),
+    }
+
     if session_id:
         matching = next((item for item in uploaded_sessions if item.get("id") == session_id), None)
         if matching:
@@ -631,15 +670,15 @@ def build_retrieval_context(
                 context["current_session_detail"] = _summarize_uploaded_session_detail(detail)
             except Exception:
                 context["current_session_detail"] = {}
-    context["recent_sessions"] = uploaded_sessions[:6]
-    context["recent_planned_sessions"] = list_test_sessions()[:6]
-    recent_reports = list_generated_reports(include_reports=False)[:6]
-    context["recent_reports"] = recent_reports
-    context["recent_events"] = [_summarize_event(item) for item in list_events()[:6]]
-    context["driver_directory"] = [_summarize_driver(item) for item in list_drivers()[:12]]
-    context["team_accounts"] = [_summarize_account(item) for item in list_user_accounts()[:12]]
-    context["track_library"] = [_summarize_track(item) for item in list_tracks()[:10]]
-    context["setup_database"] = _summarize_setup_database(list_setup_database())
+    context["recent_sessions"] = uploaded_sessions[:12]
+    context["recent_planned_sessions"] = planned_sessions[:12]
+    context["all_planned_sessions"] = [_summarize_planned_session(item) for item in planned_sessions[:60]]
+    context["recent_reports"] = reports[:12]
+    context["recent_events"] = [_summarize_event(item) for item in events[:20]]
+    context["driver_directory"] = [_summarize_driver(item) for item in drivers[:30]]
+    context["team_accounts"] = [_summarize_account(item) for item in accounts[:30]]
+    context["track_library"] = [_summarize_track(item) for item in tracks[:20]]
+    context["setup_database"] = _summarize_setup_database(setup_database)
 
     note_rows: list[dict] = []
     for session_item in context["recent_sessions"][:4]:
@@ -657,6 +696,19 @@ def build_retrieval_context(
                 context["current_planned_session"] = get_test_session(test_session_id)
             except Exception:
                 context["current_planned_session"] = {}
+    event_id = selected_event_id or (context.get("current_planned_session") or {}).get("event_id") or ""
+    if event_id:
+        matching_event = next((item for item in events if item.get("id") == event_id), None)
+        try:
+            current_event = matching_event or get_event(event_id)
+        except Exception:
+            current_event = matching_event or {}
+        if current_event:
+            context["current_event"] = _summarize_event(current_event)
+            context["current_event_sessions"] = [
+                _summarize_planned_session(item)
+                for item in (current_event.get("sessions") or [])
+            ]
     return context
 
 
@@ -664,6 +716,27 @@ def format_retrieval_context(context: dict | None) -> str:
     if not context:
         return "No retrieval context supplied."
     lines: list[str] = []
+    overview = context.get("app_overview") or {}
+    if overview:
+        lines.append("Application overview:")
+        for key, value in overview.items():
+            if value not in ("", None, [], {}):
+                lines.append(f"- {key}: {value}")
+    system_status = context.get("system_status") or {}
+    if system_status:
+        lines.append("System status:")
+        database = system_status.get("database") or {}
+        if database:
+            lines.append(
+                f"- Database healthy: {database.get('healthy', False)}, backups: {database.get('backup_count', 0)}, "
+                f"size_mb: {database.get('database_size_mb', '-')}"
+            )
+        if system_status.get("backup_count") not in (None, ""):
+            lines.append(f"- Stored backups: {system_status.get('backup_count')}")
+        if system_status.get("recent_email_count") not in (None, ""):
+            lines.append(f"- Recent email log entries: {system_status.get('recent_email_count')}")
+        if system_status.get("recent_auth_events") not in (None, ""):
+            lines.append(f"- Recent auth audit events: {system_status.get('recent_auth_events')}")
     memories = context.get("memories") or []
     if memories:
         lines.append("Saved memory:")
@@ -706,6 +779,22 @@ def format_retrieval_context(context: dict | None) -> str:
                     f"rear psi {setup.get('rear_tyre_pressure')}" if setup.get("rear_tyre_pressure") not in ("", None) else "",
                 ]
                 lines.append(f"- Planned driver {driver.get('name', '')}: {', '.join(bit for bit in setup_bits if bit) or 'setup not set'}")
+    current_event = context.get("current_event") or {}
+    if current_event:
+        lines.append("Current event:")
+        lines.append(
+            f"- {current_event.get('name', '')}: venue {current_event.get('venue', '')}, dates {current_event.get('date_label', '')}, "
+            f"sessions {current_event.get('session_count', 0)}"
+        )
+    current_event_sessions = context.get("current_event_sessions") or []
+    if current_event_sessions:
+        lines.append("Current event sessions:")
+        for item in current_event_sessions[:24]:
+            driver_list = ", ".join(item.get("drivers", [])[:5]) or "none listed"
+            lines.append(
+                f"- {item.get('name', 'Session')}: {item.get('session_type', '')}, date {item.get('date', '')}, "
+                f"time {item.get('time_window', '') or 'not set'}, status {item.get('status', 'planned')}, drivers {driver_list}"
+            )
     recent_sessions = context.get("recent_sessions") or []
     if recent_sessions:
         lines.append("Recent uploaded sessions:")
@@ -733,6 +822,15 @@ def format_retrieval_context(context: dict | None) -> str:
         lines.append("Recent events:")
         for item in recent_events[:5]:
             lines.append(f"- {item.get('name', '')}: venue {item.get('venue', '')}, dates {item.get('date_label', '')}, sessions {item.get('session_count', 0)}")
+    all_planned_sessions = context.get("all_planned_sessions") or []
+    if all_planned_sessions:
+        lines.append("Planned session library:")
+        for item in all_planned_sessions[:24]:
+            lines.append(
+                f"- {item.get('name', 'Session')}: venue {item.get('venue', '')}, event {item.get('event_name', '')}, "
+                f"date {item.get('date', '')}, time {item.get('time_window', '') or 'not set'}, "
+                f"status {item.get('status', 'planned')}, drivers {', '.join(item.get('drivers', [])[:5]) or 'none'}"
+            )
     driver_directory = context.get("driver_directory") or []
     if driver_directory:
         lines.append("Driver directory:")
@@ -870,6 +968,23 @@ def _summarize_event(event: dict) -> dict:
         "date_label": date_label,
         "session_count": len(event.get("sessions") or []),
         "drivers": [driver.get("name", "") for driver in (event.get("drivers") or [])[:8]],
+    }
+
+
+def _summarize_planned_session(session: dict) -> dict:
+    return {
+        "id": session.get("id"),
+        "name": session.get("name"),
+        "event_id": session.get("event_id", ""),
+        "event_name": session.get("event_name", ""),
+        "venue": session.get("venue", ""),
+        "session_type": session.get("session_type", ""),
+        "date": session.get("date", ""),
+        "time_window": " - ".join(bit for bit in [session.get("start_time", ""), session.get("end_time", "")] if bit),
+        "status": session.get("status", "planned"),
+        "weather": session.get("weather", ""),
+        "track_condition": session.get("track_condition", ""),
+        "drivers": [driver.get("name", "") for driver in (session.get("drivers") or [])[:8]],
     }
 
 

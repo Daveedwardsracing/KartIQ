@@ -222,6 +222,8 @@ class ChatRequest(BaseModel):
     role: str = ""
     session_id: str = ""
     test_session_id: str = ""
+    selected_event_id: str = ""
+    current_screen: str = ""
     use_retrieval: bool = True
     use_memory: bool = True
 

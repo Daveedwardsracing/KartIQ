@@ -104,6 +104,7 @@ export default function ReportBuilderPanel({
   loading,
   generateNotice,
   audience,
+  mobileExperience = false,
   onAudienceChange,
   onSelectSession,
   onGenerateFeedback,
@@ -141,6 +142,238 @@ export default function ReportBuilderPanel({
     if (!session?.id) return;
     const target = `/report-template?sessionId=${encodeURIComponent(session.id)}&audience=${encodeURIComponent(audience)}`;
     window.open(target, "_blank", "noopener,noreferrer");
+  }
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-report-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy max-w-3xl">
+            <p className="workspace-section-label">Mobile Reports</p>
+            <h2 className="workspace-hero-title">Generate and publish reports on the phone.</h2>
+            <p className="workspace-hero-text">Pick the session, switch the audience, preview the shape of the report, then generate and publish without the full desktop studio around it.</p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Sessions</p>
+              <p className="workspace-kpi-value">{availableSessions.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Reports</p>
+              <p className="workspace-kpi-value">{reportsStore.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Audience</p>
+              <p className="workspace-kpi-value">{audience.charAt(0).toUpperCase() + audience.slice(1)}</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid gap-4">
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Session</p>
+                <h3 className="mt-2 text-xl font-semibold">{session ? session.event_round : "Choose a session"}</h3>
+              </div>
+              {session ? <span className="pill">{session.status || "uploaded"}</span> : null}
+            </div>
+            <div className="mt-4 grid gap-3">
+              {availableSessions.length ? availableSessions.map((item) => (
+                <button
+                  key={item.id}
+                  className={`library-item ${session?.id === item.id ? "active" : ""}`}
+                  onClick={() => onSelectSession(item.id)}
+                  type="button"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{item.event_round || item.event_name}</p>
+                      <p className="mt-1 text-sm muted">{item.event_name} / {item.session_type}</p>
+                    </div>
+                    <span className="pill pill-neutral">{item.driver_count || item.drivers?.length || 0}</span>
+                  </div>
+                </button>
+              )) : <p className="muted">No uploaded sessions are available yet.</p>}
+            </div>
+          </article>
+
+          {session ? (
+            <>
+              <article className="app-panel p-4">
+                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <p className="workspace-section-label">Audience</p>
+                    <h3 className="mt-2 text-xl font-semibold">{audiencePreview.title}</h3>
+                  </div>
+                  {latestGenerated ? <span className="pill pill-neutral">{latestGenerated.status || "draft"}</span> : null}
+                </div>
+                <div className="mt-4 chip-row">
+                  {[
+                    ["coach", "Coach"],
+                    ["driver", "Driver"],
+                    ["parent", "Parent"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      className={`telemetry-channel-chip ${audience === value ? "active" : ""}`}
+                      onClick={() => onAudienceChange(value)}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 grid gap-2">
+                  {includedSections.map((item) => (
+                    <div key={item.id} className="session-debrief-row">
+                      <span>{item.label}</span>
+                      <span className="pill pill-neutral">Included</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+
+              <article className="app-panel p-4">
+                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <p className="workspace-section-label">Actions</p>
+                    <h3 className="mt-2 text-xl font-semibold">Generate and export</h3>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" onClick={onGenerateFeedback} type="button" disabled={loading}>
+                    {loading ? "Generating..." : "Generate report"}
+                  </button>
+                  <button className="workspace-ghost px-4 py-3 text-sm" onClick={openHtmlTemplate} type="button">
+                    Open HTML template
+                  </button>
+                  <button className="workspace-ghost px-4 py-3 text-sm" onClick={onExportPdf} type="button" disabled={loading}>
+                    Export PDF
+                  </button>
+                </div>
+                {generateNotice ? (
+                  <div className="workspace-notice-banner mt-4">
+                    {generateNotice}
+                  </div>
+                ) : null}
+              </article>
+
+              <article className="app-panel p-4">
+                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <p className="workspace-section-label">Publish</p>
+                    <h3 className="mt-2 text-xl font-semibold">{publishConfig.title}</h3>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm muted">{publishConfig.helper}</p>
+                {latestGenerated ? (
+                  <div className="mt-4 grid gap-3">
+                    <textarea
+                      className="workspace-field min-h-[100px]"
+                      placeholder="Optional review note..."
+                      value={reviewNoteDraft}
+                      onChange={(event) => setReviewNoteDraft(event.target.value)}
+                    />
+                    <div className="session-debrief-row">
+                      <span>Reviewed</span>
+                      <span>{latestGenerated.reviewed_at || "Not reviewed yet"}</span>
+                    </div>
+                    <div className="session-debrief-row">
+                      <span>Published</span>
+                      <span>{latestGenerated.published_at || "Not published yet"}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        className="workspace-primary px-4 py-3 text-sm font-medium text-white"
+                        onClick={() => onPublishReport(latestGenerated.id, { ...publishConfig.publishPayload, review_note: reviewNoteDraft })}
+                        type="button"
+                      >
+                        {publishConfig.primaryLabel}
+                      </button>
+                      {canUnpublishLatest ? (
+                        <button
+                          className="workspace-ghost px-4 py-3 text-sm"
+                          onClick={() => onPublishReport(latestGenerated.id, { ...publishConfig.unpublishPayload, review_note: reviewNoteDraft })}
+                          type="button"
+                        >
+                          {publishConfig.secondaryLabel}
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-sm muted">Generate this audience report first to review or publish it.</p>
+                )}
+              </article>
+
+              <article className="app-panel p-4">
+                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <p className="workspace-section-label">Preview</p>
+                    <h3 className="mt-2 text-xl font-semibold">{audiencePreview.title}</h3>
+                  </div>
+                  <span className="pill pill-neutral">{formatDateLabel(session.created_at)}</span>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  {latestGeneratedRows.length ? latestGeneratedRows.slice(0, 3).map((report) => (
+                    <div key={`${latestGenerated?.id || "draft"}-${report.driver_name}`} className="workspace-subtle-card p-4">
+                      <p className="font-medium">{report.canonical_driver_name || report.driver_name}</p>
+                      {report.headline ? <p className="mt-2 text-sm text-blue-100">{report.headline}</p> : null}
+                      <p className="mt-3 text-sm muted">{report.overall_summary}</p>
+                      {report.primary_focus ? <p className="mt-3 text-sm"><span className="font-medium">Primary focus:</span> {report.primary_focus}</p> : null}
+                    </div>
+                  )) : (
+                    <div className="workspace-subtle-card p-4">
+                      <p className="text-sm muted">Generate feedback to pull the latest report content into the mobile preview.</p>
+                    </div>
+                  )}
+                  {generatedTakeaways.length ? (
+                    <div className="workspace-subtle-card p-4">
+                      <p className="text-sm font-medium">Key takeaways</p>
+                      <div className="mt-3 grid gap-2">
+                        {generatedTakeaways.slice(0, 4).map((item, index) => (
+                          <div key={`${item.driverName}-${index}`} className="session-debrief-row">
+                            <span>{item.driverName}</span>
+                            <span>{item.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {generatedActions.length ? (
+                    <div className="workspace-subtle-card p-4">
+                      <p className="text-sm font-medium">Action points</p>
+                      <div className="mt-3 grid gap-2">
+                        {generatedActions.slice(0, 4).map((item, index) => (
+                          <div key={`${item.driverName}-action-${index}`} className="session-debrief-row">
+                            <span>{item.driverName}</span>
+                            <span>{item.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {audience === "parent" && generatedSupportNotes.length ? (
+                    <div className="workspace-subtle-card p-4">
+                      <p className="text-sm font-medium">Support notes</p>
+                      <div className="mt-3 grid gap-2">
+                        {generatedSupportNotes.slice(0, 4).map((item, index) => (
+                          <div key={`${item.driverName}-support-${index}`} className="session-debrief-row">
+                            <span>{item.driverName}</span>
+                            <span>{item.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            </>
+          ) : null}
+        </div>
+      </div>
+    );
   }
 
   return (

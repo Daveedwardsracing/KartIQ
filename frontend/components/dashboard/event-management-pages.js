@@ -9,6 +9,7 @@ export function EventManager({
   driversStore,
   tracksStore,
   editingEventId,
+  mobileExperience = false,
   onSelectEvent,
   onCancel,
   onChange,
@@ -36,6 +37,121 @@ export function EventManager({
       ? "Browse the future event schedule and jump into session planning when you are ready."
       : "Open older events when you need to revisit their session plans.";
   const listTitle = mode === "View Past Events" ? "Past events" : mode === "View Upcoming Events" ? "Upcoming events" : "All events";
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-planning-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy max-w-3xl">
+            <p className="workspace-section-label">Mobile Events</p>
+            <h2 className="workspace-hero-title">{listTitle}</h2>
+            <p className="workspace-hero-text">{heading}</p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Events</p>
+              <p className="workspace-kpi-value">{filteredEvents.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Sessions</p>
+              <p className="workspace-kpi-value">{eventsStore.reduce((count, item) => count + (item.sessions?.length || 0), 0)}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Mode</p>
+              <p className="workspace-kpi-value">{isCreateMode ? "Create" : "Browse"}</p>
+            </div>
+          </div>
+        </section>
+
+        {isCreateMode ? (
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Event Editor</p>
+                <h3 className="mt-2 text-xl font-semibold">{editingEventId ? "Update event" : "Create event"}</h3>
+              </div>
+              <span className="pill pill-neutral">{editingEventId ? "Editing" : "New"}</span>
+            </div>
+            <form className="mt-4 grid gap-3" onSubmit={onSubmit}>
+              <select className="workspace-field" value={eventDraft.venue} onChange={(event) => onChange((current) => ({ ...current, venue: event.target.value }))}>
+                <option value="">Select track / venue</option>
+                {tracksStore.map((track) => (
+                  <option key={track.id} value={track.name}>{track.name}</option>
+                ))}
+              </select>
+              <input className="workspace-field" placeholder="Event name" value={eventDraft.name} onChange={(event) => onChange((current) => ({ ...current, name: event.target.value }))} />
+              <input className="workspace-field" placeholder="Session type" value={eventDraft.session_type} onChange={(event) => onChange((current) => ({ ...current, session_type: event.target.value }))} />
+              <input className="workspace-field" type="date" value={eventDraft.start_date} onChange={(event) => onChange((current) => ({ ...current, start_date: event.target.value }))} />
+              <input className="workspace-field" type="date" value={eventDraft.end_date} onChange={(event) => onChange((current) => ({ ...current, end_date: event.target.value }))} />
+              <div className="workspace-subtle-card p-4">
+                <p className="text-sm font-medium text-white">Assign drivers</p>
+                <div className="mt-3 workflow-chip-grid">
+                  {driversStore.map((driver) => {
+                    const checked = eventDraft.driver_ids.includes(driver.id);
+                    return (
+                      <label key={driver.id} className={`pill selection-pill ${checked ? "is-selected" : "pill-neutral"} cursor-pointer`}>
+                        <input
+                          className="hidden"
+                          checked={checked}
+                          type="checkbox"
+                          onChange={(event) => onChange((current) => ({
+                            ...current,
+                            driver_ids: event.target.checked
+                              ? [...current.driver_ids, driver.id]
+                              : current.driver_ids.filter((id) => id !== driver.id),
+                          }))}
+                        />
+                        <span className="selection-pill-marker" aria-hidden="true">OK</span>
+                        <span>{driver.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="mobile-session-action-row">
+                <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" type="submit">{editingEventId ? "Save event" : "Create event"}</button>
+                {editingEventId ? <button className="workspace-ghost px-4 py-3 text-sm" onClick={onCancel} type="button">Cancel</button> : null}
+              </div>
+            </form>
+          </article>
+        ) : null}
+
+        <article className="app-panel p-4">
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+            <div>
+              <p className="workspace-section-label">Event List</p>
+              <h3 className="mt-2 text-xl font-semibold">{listTitle}</h3>
+            </div>
+            <span className="pill pill-neutral">{filteredEvents.length}</span>
+          </div>
+          <div className="mt-4 grid gap-3">
+            {filteredEvents.map((item) => (
+              <div key={item.id} className="workspace-subtle-card p-4">
+                <button className="w-full text-left" onClick={() => onSelectEvent(item.id)} type="button">
+                  <p className="text-base font-semibold text-white">{item.name}</p>
+                  <p className="mt-1 text-sm muted">{item.venue} / {item.session_type} / {formatEventDateRange(item)}</p>
+                </button>
+                <div className="workflow-chip-grid mt-3">
+                  <span className="pill pill-neutral">{item.sessions?.length || 0} sessions</span>
+                  <span className="pill pill-neutral">{item.drivers?.length || 0} drivers</span>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onSelectEvent(item.id)} type="button">Open</button>
+                  <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onCreateSession(item.id)} type="button">New session</button>
+                  <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onEdit(item)} type="button">Edit</button>
+                </div>
+              </div>
+            ))}
+            {!filteredEvents.length ? (
+              <div className="workspace-subtle-card p-6 text-sm muted">
+                {isCreateMode ? "No events created yet. Use the editor above to add the first event." : `No events found in ${listTitle.toLowerCase()}.`}
+              </div>
+            ) : null}
+          </div>
+        </article>
+      </div>
+    );
+  }
 
   return (
     <div className="workspace-page">
@@ -175,10 +291,98 @@ export function EventManager({
   );
 }
 
-export function SessionListPage({ eventsStore, sessionsStore, reportsStore, selectedPlannerEventId, onBackToEvents, onCreateSession, onEditSession, onDeleteSession, onOpenSession, onOpenUploadSession, onRefreshAllWeather, loading = false }) {
+export function SessionListPage({ eventsStore, sessionsStore, reportsStore, selectedPlannerEventId, mobileExperience = false, onBackToEvents, onCreateSession, onEditSession, onDeleteSession, onOpenSession, onOpenUploadSession, onRefreshAllWeather, loading = false }) {
   const selectedEvent = eventsStore.find((item) => item.id === selectedPlannerEventId) || null;
   const sessions = selectedEvent?.sessions || [];
   const eventSummary = buildEventDaySummary(sessions, sessionsStore || [], reportsStore || []);
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-planning-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy">
+            <p className="workspace-section-label">Mobile Sessions</p>
+            <h2 className="workspace-hero-title">{selectedEvent ? selectedEvent.name : "Choose an event"}</h2>
+            <p className="workspace-hero-text">
+              {selectedEvent
+                ? `${selectedEvent.venue} / ${selectedEvent.session_type} / ${selectedEvent.date || "No date"}`
+                : "Go back to Events and choose the event you want to manage."}
+            </p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Sessions</p>
+              <p className="workspace-kpi-value">{sessions.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Uploads</p>
+              <p className="workspace-kpi-value">{eventSummary.uploadedCount}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Need reports</p>
+              <p className="workspace-kpi-value">{eventSummary.needReportsCount}</p>
+            </div>
+          </div>
+          <div className="mobile-session-action-row">
+            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onBackToEvents} type="button">Back</button>
+            {selectedEvent ? <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onRefreshAllWeather?.(selectedEvent.id)} type="button" disabled={loading || !sessions.length}>{loading ? "Refreshing..." : "Refresh forecasts"}</button> : null}
+            {selectedEvent ? <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onCreateSession(selectedEvent.id)} type="button">Create session</button> : null}
+          </div>
+        </section>
+
+        <article className="app-panel p-4">
+          {selectedEvent ? (
+            <div className="grid gap-3">
+              {eventSummary.attentionItems.length ? (
+                <div className="workspace-subtle-card p-4">
+                  <p className="text-sm font-medium text-white">Today’s attention list</p>
+                  <div className="mt-3 grid gap-2">
+                    {eventSummary.attentionItems.slice(0, 4).map((item) => (
+                      <div key={`${item.sessionId}-${item.label}`} className="session-debrief-row">
+                        <span>{item.sessionName}</span>
+                        <span>{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {sessions.map((testSession) => {
+                const metrics = buildPlannedSessionMetrics(testSession, sessionsStore || [], reportsStore || []);
+                return (
+                  <div key={testSession.id} className="workspace-subtle-card p-4">
+                    <button className="w-full text-left" onClick={() => onOpenSession(testSession)} type="button">
+                      <p className="text-base font-semibold text-white">{testSession.name}</p>
+                      <p className="mt-1 text-sm muted">{testSession.venue} / {testSession.session_type} / {testSession.date || "No date"}</p>
+                    </button>
+                    <div className="workflow-chip-grid mt-3">
+                      <span className="pill pill-neutral">{testSession.drivers.length} drivers</span>
+                      <span className={`pill planned-session-status planned-session-status-${testSession.status || "planned"}`}>{formatPlannedSessionStatus(testSession.status)}</span>
+                      {metrics.forecastStatusLabel ? <span className={`pill ${metrics.forecastStatusTone === "warn" ? "pill-warn" : "pill-neutral"}`}>{metrics.forecastStatusLabel}</span> : null}
+                    </div>
+                    {metrics.warnings.length ? (
+                      <div className="workflow-chip-grid mt-3">
+                        {metrics.warnings.map((warning) => (
+                          <span key={`${testSession.id}-${warning}`} className="pill pill-warn">{warning}</span>
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onOpenSession(testSession)} type="button">Open</button>
+                      <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onOpenUploadSession(testSession)} type="button">Upload</button>
+                      <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onEditSession(testSession)} type="button">Edit</button>
+                    </div>
+                  </div>
+                );
+              })}
+              {!sessions.length ? <div className="workspace-subtle-card p-6 text-sm muted">No sessions created for this event yet. Create one to start the upload workflow.</div> : null}
+            </div>
+          ) : (
+            <div className="workspace-subtle-card p-6 text-sm muted">No event selected yet.</div>
+          )}
+        </article>
+      </div>
+    );
+  }
 
   return (
     <div className="workspace-page">
@@ -569,10 +773,89 @@ function updateDraftDriverSetup(onChange, driverId, field, value) {
   }));
 }
 
-export function SessionEditorPage({ eventsStore, testSessionDraft, editingTestSessionId, onChange, onCancel, onSubmit }) {
+export function SessionEditorPage({ eventsStore, testSessionDraft, editingTestSessionId, mobileExperience = false, onChange, onCancel, onSubmit }) {
   const selectedEvent = eventsStore.find((item) => item.id === testSessionDraft.event_id) || null;
   const availableDrivers = selectedEvent?.drivers || [];
   const selectedDrivers = availableDrivers.filter((driver) => testSessionDraft.driver_ids.includes(driver.id));
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-planning-page">
+        <article className="app-panel p-4">
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+            <div>
+              <p className="workspace-section-label">Mobile Session Editor</p>
+              <h2 className="mt-2 text-xl font-semibold">{editingTestSessionId ? "Edit planned session" : "Create planned session"}</h2>
+              <p className="mt-2 text-sm muted">
+                {selectedEvent
+                  ? `Creating inside ${selectedEvent.name} at ${selectedEvent.venue}.`
+                  : "Choose the parent event from the Events page first."}
+              </p>
+            </div>
+            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onCancel} type="button">Back</button>
+          </div>
+
+          <form className="mt-4 grid gap-3" onSubmit={onSubmit}>
+            <div className="workspace-subtle-card p-4">
+              <p className="text-sm font-medium text-white">{selectedEvent?.name || "No event selected"}</p>
+              <p className="mt-1 text-sm muted">{selectedEvent ? `${selectedEvent.venue} / ${selectedEvent.session_type} / ${selectedEvent.date || "No date"}` : "Return to Events and open a session list first."}</p>
+            </div>
+            <input className="workspace-field" placeholder="Session name" value={testSessionDraft.name} onChange={(event) => onChange((current) => ({ ...current, name: event.target.value }))} />
+            <input className="workspace-field" placeholder="Venue" value={testSessionDraft.venue} onChange={(event) => onChange((current) => ({ ...current, venue: event.target.value }))} />
+            <input className="workspace-field" placeholder="Session type" value={testSessionDraft.session_type} onChange={(event) => onChange((current) => ({ ...current, session_type: event.target.value }))} />
+            <input className="workspace-field" type="date" value={testSessionDraft.date} onChange={(event) => onChange((current) => ({ ...current, date: event.target.value }))} />
+            <input className="workspace-field" type="time" value={testSessionDraft.start_time || ""} onChange={(event) => onChange((current) => ({ ...current, start_time: event.target.value }))} />
+            <input className="workspace-field" type="time" value={testSessionDraft.end_time || ""} onChange={(event) => onChange((current) => ({ ...current, end_time: event.target.value }))} />
+            <select className="workspace-field" value={testSessionDraft.status || "planned"} onChange={(event) => onChange((current) => ({ ...current, status: event.target.value }))}>
+              {PLANNED_SESSION_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+            <div className="workspace-subtle-card p-4">
+              <p className="text-sm font-medium text-white">Assign drivers</p>
+              <div className="mt-3 workflow-chip-grid">
+                {availableDrivers.map((driver) => {
+                  const checked = testSessionDraft.driver_ids.includes(driver.id);
+                  return (
+                    <label key={driver.id} className={`pill selection-pill ${checked ? "is-selected" : "pill-neutral"} cursor-pointer`}>
+                      <input
+                        className="hidden"
+                        checked={checked}
+                        type="checkbox"
+                        onChange={(event) => onChange((current) => ({
+                          ...current,
+                          driver_ids: event.target.checked
+                            ? [...current.driver_ids, driver.id]
+                            : current.driver_ids.filter((id) => id !== driver.id),
+                        }))}
+                      />
+                      <span className="selection-pill-marker" aria-hidden="true">OK</span>
+                      <span>{driver.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+            {selectedDrivers.length ? (
+              <div className="workspace-subtle-card p-4">
+                <p className="text-sm font-medium text-white">Setup coverage</p>
+                <div className="mt-3 grid gap-2">
+                  {selectedDrivers.map((driver) => (
+                    <div key={`${driver.id}-mobile-setup-summary`} className="session-debrief-row">
+                      <span>{driver.name}</span>
+                      <span>Setup sheet ready in desktop editor</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <div className="mobile-session-action-row">
+              <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" type="submit">{editingTestSessionId ? "Save session" : "Create session"}</button>
+              <button className="workspace-ghost px-4 py-3 text-sm" onClick={onCancel} type="button">Cancel</button>
+            </div>
+          </form>
+        </article>
+      </div>
+    );
+  }
 
   return (
     <div className="workspace-page">

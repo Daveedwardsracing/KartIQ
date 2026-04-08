@@ -17,6 +17,7 @@ export function PlannedSessionPage({
   selectedTestSession,
   linkedUploadedSessions = [],
   loading,
+  mobileExperience = false,
   onBack,
   onDeleteSession,
   onEditSession,
@@ -114,6 +115,169 @@ export function PlannedSessionPage({
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  }
+
+  if (selectedTestSession && mobileExperience) {
+    return (
+      <div className="workspace-page mobile-planning-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy">
+            <p className="workspace-section-label">Mobile Planned Session</p>
+            <h2 className="workspace-hero-title">{selectedTestSession.name}</h2>
+            <p className="workspace-hero-text">
+              {[selectedTestSession.venue, selectedTestSession.session_type, selectedTestSession.date || "No date"].filter(Boolean).join(" / ")}
+            </p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Drivers</p>
+              <p className="workspace-kpi-value">{selectedTestSession.drivers.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Uploads</p>
+              <p className="workspace-kpi-value">{linkedUploadedSessions.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">State</p>
+              <p className="workspace-kpi-value">{formatPlannedSessionStatus(sessionDraft.status)}</p>
+            </div>
+          </div>
+          <div className="mobile-session-action-row">
+            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onBack} type="button">Back</button>
+            <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onOpenUploadSession(selectedTestSession)} type="button">Upload</button>
+            <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onEditSession(selectedTestSession)} type="button">Edit</button>
+          </div>
+        </section>
+
+        <article className="app-panel p-4">
+          <div className="grid gap-3">
+            {plannedSessionMetrics.warnings.length ? (
+              <div className="workflow-chip-grid">
+                {plannedSessionMetrics.warnings.map((warning) => (
+                  <span key={`${selectedTestSession.id}-${warning}`} className="pill pill-warn">{warning}</span>
+                ))}
+              </div>
+            ) : (
+              <div className="workflow-chip-grid">
+                <span className="pill">Session looks operationally tidy</span>
+              </div>
+            )}
+
+            <div className="workspace-subtle-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="workspace-section-label">Forecast</p>
+                  <p className="mt-2 text-sm muted">
+                    {forecast?.summary
+                      ? `${forecast.summary} / ${forecast.location_name || selectedTestSession.venue}`
+                      : "No forecast saved yet for this session."}
+                  </p>
+                </div>
+                <button
+                  className="workspace-ghost px-4 py-3 text-sm"
+                  disabled={!selectedTestSession?.date || !selectedTestSession?.venue || loading}
+                  onClick={() => onRefreshWeather?.(selectedTestSession.id)}
+                  type="button"
+                >
+                  {loading ? "Refreshing..." : "Refresh"}
+                </button>
+              </div>
+              {forecast?.summary ? (
+                <>
+                  <WeatherForecastVisual forecast={forecast} forecastState={forecastState} />
+                  <div className="mt-4 grid gap-2">
+                    <div className="session-debrief-row">
+                      <span>Session window</span>
+                      <span>{formatSessionWindow(selectedTestSession)}</span>
+                    </div>
+                    <div className="session-debrief-row">
+                      <span>Status</span>
+                      <span>{forecastState.label}</span>
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+
+            <div className="workspace-subtle-card p-4">
+              <p className="workspace-section-label">Session Notes</p>
+              <div className="mt-4 grid gap-3">
+                <KartSetupField label="Status">
+                  <select className="workspace-field" value={sessionDraft.status} onChange={(event) => { setSessionDraft((current) => ({ ...current, status: event.target.value })); setSessionDirty(true); }}>
+                    {PLANNED_SESSION_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </KartSetupField>
+                <KartSetupField label="Weather">
+                  <input className="workspace-field" placeholder="Dry, cold, windy..." value={sessionDraft.weather} onChange={(event) => { setSessionDraft((current) => ({ ...current, weather: event.target.value })); setSessionDirty(true); }} />
+                </KartSetupField>
+                <KartSetupField label="Track Condition">
+                  <input className="workspace-field" placeholder="Green, rubbered in..." value={sessionDraft.track_condition} onChange={(event) => { setSessionDraft((current) => ({ ...current, track_condition: event.target.value })); setSessionDirty(true); }} />
+                </KartSetupField>
+                <KartSetupField label="Coach Notes">
+                  <textarea className="workspace-field min-h-[110px]" placeholder="Session goals and reminders." value={sessionDraft.coach_notes} onChange={(event) => { setSessionDraft((current) => ({ ...current, coach_notes: event.target.value })); setSessionDirty(true); }} />
+                </KartSetupField>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button className="workspace-primary px-4 py-3 text-sm text-white" disabled={!sessionDirty || loading} onClick={handleSaveSessionDetails} type="button">
+                  {loading ? "Saving..." : "Save details"}
+                </button>
+              </div>
+            </div>
+
+            <div className="workspace-subtle-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="workspace-section-label">Drivers</p>
+                  <p className="mt-2 text-sm muted">Assigned to this session.</p>
+                </div>
+                <span className="pill pill-neutral">{selectedTestSession.drivers.length}</span>
+              </div>
+              <div className="mt-4 grid gap-3">
+                {selectedTestSession.drivers.map((driver) => (
+                  <div key={`${driver.id}-mobile-driver`} className="workspace-subtle-card p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{driver.name}</p>
+                        <p className="text-sm muted">{driver.class_name || "No class"}</p>
+                      </div>
+                      <span className="pill pill-neutral">{driver.setup ? "Setup saved" : "Setup pending"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="workspace-subtle-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="workspace-section-label">Uploaded Runs</p>
+                  <p className="mt-2 text-sm muted">Runs linked back to this plan.</p>
+                </div>
+                <span className="pill pill-neutral">{linkedUploadedSessions.length}</span>
+              </div>
+              <div className="mt-4 grid gap-3">
+                {linkedUploadedSessions.length ? linkedUploadedSessions.map((sessionRecord) => (
+                  <div key={sessionRecord.id} className="workspace-subtle-card p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{sessionRecord.event_round || sessionRecord.event_name || "Uploaded session"}</p>
+                        <p className="text-sm muted">{[sessionRecord.session_type, sessionRecord.created_at].filter(Boolean).join(" / ")}</p>
+                      </div>
+                      <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onOpenUploadedSession(sessionRecord.id)} type="button">Open</button>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/20 p-5">
+                    <p className="text-sm font-medium text-white">No uploaded runs linked yet.</p>
+                    <p className="mt-2 text-sm muted">Use Upload when the drivers come in.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    );
   }
 
   return (

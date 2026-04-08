@@ -8,6 +8,7 @@ import UserManagementPanel from "@/components/dashboard/user-management-panel";
 import PlanningCalendar from "@/components/dashboard/planning-calendar";
 import ReportBuilderPanel from "@/components/dashboard/report-builder";
 import OperationsPanel from "@/components/dashboard/operations-panel";
+import BetaDiagnosticsPanel from "@/components/dashboard/beta-diagnostics-panel";
 import UploadWorkspace from "@/components/dashboard/upload-workspace";
 import { AnalysisPanel, ReportsPanel } from "@/components/dashboard/analysis-panels";
 import { EventManager, SessionEditorPage, SessionListPage } from "@/components/dashboard/event-management-pages";
@@ -114,7 +115,7 @@ const ADMIN_NAV_GROUPS = [
   },
   { label: "Planning", items: [{ label: "Events", children: ["Create Event", "View Upcoming Events", "View Past Events"] }, "Calendar", "Tracks", "Setup Database"] }
 ];
-const SETTINGS_NAV_GROUP = { label: "Settings", items: [{ label: "Settings", children: ["General Settings", "AI Settings", "Email Settings", "Operations"] }] };
+const SETTINGS_NAV_GROUP = { label: "Settings", items: [{ label: "Settings", children: ["General Settings", "AI Settings", "Email Settings", "Operations", "Beta Diagnostics"] }] };
 const PORTAL_NAV_GROUPS = [
   { label: "Portal", items: ["My Portal", "History"] }
 ];
@@ -239,6 +240,11 @@ const SCREEN_META = {
     title: "Monitor beta health, account activity, backups, and delivery status from one operations console.",
     subtitle: "Keep a close eye on auth activity, SMTP delivery, AI availability, backups, and export safeguards while the live beta is running."
   },
+  "Beta Diagnostics": {
+    eyebrow: "Settings",
+    title: "Check the live beta like a product, not just a collection of admin pages.",
+    subtitle: "Bring readiness, service health, data coverage, backups, and current defaults into one fast diagnostics view before the next live session."
+  },
   "My Portal": {
     eyebrow: "Portal",
     title: "Stay focused on the sessions, reports, and trends that matter to this account.",
@@ -325,52 +331,65 @@ const DEFAULT_EMAIL_SETTINGS = {
 const EMPTY_AI_MEMORY = { title: "", content: "", tags: "" };
 const APP_STATE_STORAGE_KEY = "der-unipro-app-state-v1";
 
+function prependRouteBase(routeBase, path) {
+  if (!routeBase) {
+    return path;
+  }
+  if (path === "/") {
+    return routeBase;
+  }
+  return `${routeBase}${path}`;
+}
+
 function normalizeScreenName(screenName) {
   return screenName === "Driver Management" ? "Driver Profiles" : screenName;
 }
 
-function getPathForScreen(screen) {
+function getPathForScreen(screen, routeBase = "") {
   if (screen === "History") {
-    return "/history";
+    return prependRouteBase(routeBase, "/history");
   }
   if (screen === "Session Results") {
-    return "/sessions";
+    return prependRouteBase(routeBase, "/sessions");
   }
   if (screen === "Reports") {
-    return "/reports";
+    return prependRouteBase(routeBase, "/reports");
   }
   if (screen === "Setup Database") {
-    return "/setups";
+    return prependRouteBase(routeBase, "/setups");
   }
   if (screen === "General Settings") {
-    return "/settings";
+    return prependRouteBase(routeBase, "/settings");
   }
   if (screen === "AI Settings") {
-    return "/settings/ai";
+    return prependRouteBase(routeBase, "/settings/ai");
   }
   if (screen === "Email Settings") {
-    return "/settings/email";
+    return prependRouteBase(routeBase, "/settings/email");
   }
   if (screen === "Operations") {
-    return "/settings/operations";
+    return prependRouteBase(routeBase, "/settings/operations");
+  }
+  if (screen === "Beta Diagnostics") {
+    return prependRouteBase(routeBase, "/settings/beta");
   }
   if (["Create Event", "View Upcoming Events", "View Past Events", "Calendar"].includes(screen)) {
-    return "/events";
+    return prependRouteBase(routeBase, "/events");
   }
   if (["Event Sessions", "Planned Session", "Create Session"].includes(screen)) {
-    return "/events";
+    return prependRouteBase(routeBase, "/events");
   }
-  return "/";
+  return prependRouteBase(routeBase, "/");
 }
 
-function getPathForState(snapshot) {
+function getPathForState(snapshot, routeBase = "") {
   if (snapshot?.screen === "Session Results" && snapshot?.selectedSessionId) {
-    return `/sessions/${snapshot.selectedSessionId}`;
+    return prependRouteBase(routeBase, `/sessions/${snapshot.selectedSessionId}`);
   }
   if (["Event Sessions", "Planned Session", "Create Session"].includes(snapshot?.screen) && snapshot?.selectedPlannerEventId) {
-    return `/events/${snapshot.selectedPlannerEventId}`;
+    return prependRouteBase(routeBase, `/events/${snapshot.selectedPlannerEventId}`);
   }
-  return getPathForScreen(snapshot?.screen);
+  return getPathForScreen(snapshot?.screen, routeBase);
 }
 
 function buildSettingsScope(session) {
@@ -381,7 +400,15 @@ function buildSettingsScope(session) {
   };
 }
 
-export default function DashboardShellV2({ initialScreen = "Home", initialSessionId = null, initialEventId = null }) {
+export default function DashboardShellV2({
+  initialScreen = "Home",
+  initialSessionId = null,
+  initialEventId = null,
+  experienceMode = "desktop",
+}) {
+  const isMobileExperience = experienceMode === "mobile";
+  const routeBase = isMobileExperience ? "/mobile" : "";
+  const appStateStorageKey = `${APP_STATE_STORAGE_KEY}-${experienceMode}`;
   const historyReadyRef = useRef(false);
   const suppressHistoryPushRef = useRef(false);
   const lastHistorySnapshotRef = useRef("");
@@ -479,6 +506,8 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                   ? "Email Settings"
                   : initialScreen === "Operations"
                     ? "Operations"
+                    : initialScreen === "Beta Diagnostics"
+                      ? "Beta Diagnostics"
           : initialScreen === "Event Sessions"
             ? "Event Sessions"
             : normalizeScreenName(snapshot.screen || initialScreen || "Home");
@@ -541,7 +570,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
         selectedDriverTimelineId,
         testSessionId: formState.testSessionId,
       });
-      const raw = window.localStorage.getItem(APP_STATE_STORAGE_KEY);
+      const raw = window.localStorage.getItem(appStateStorageKey);
       if (raw) {
         try {
           const snapshot = JSON.parse(raw);
@@ -555,7 +584,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
             if (initialScreen !== "Tracks") {
               snapshot.selectedPlannerEventId = null;
             }
-          } else if (["Reports", "General Settings", "AI Settings", "Email Settings", "Operations"].includes(initialScreen)) {
+          } else if (["Reports", "General Settings", "AI Settings", "Email Settings", "Operations", "Beta Diagnostics"].includes(initialScreen)) {
             snapshot.screen = initialScreen;
           } else if (initialScreen === "Event Sessions") {
             snapshot.screen = "Event Sessions";
@@ -564,7 +593,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
           await applySnapshot(snapshot);
           historySnapshot = snapshot;
         } catch {
-          window.localStorage.removeItem(APP_STATE_STORAGE_KEY);
+          window.localStorage.removeItem(appStateStorageKey);
         }
       } else if (initialScreen === "Session Results" && initialSessionId) {
         historySnapshot = {
@@ -580,7 +609,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
           selectedPlannerEventId: initialScreen === "Tracks" ? historySnapshot.selectedPlannerEventId : null,
         };
         await applySnapshot(historySnapshot);
-      } else if (["Reports", "General Settings", "AI Settings", "Email Settings", "Operations"].includes(initialScreen)) {
+      } else if (["Reports", "General Settings", "AI Settings", "Email Settings", "Operations", "Beta Diagnostics"].includes(initialScreen)) {
         historySnapshot = {
           ...historySnapshot,
           screen: initialScreen,
@@ -597,7 +626,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
 
       const serialised = JSON.stringify(historySnapshot);
       lastHistorySnapshotRef.current = serialised;
-      window.history.replaceState({ derAppState: historySnapshot }, "", getPathForState(historySnapshot));
+      window.history.replaceState({ derAppState: historySnapshot }, "", getPathForState(historySnapshot, routeBase));
       historyReadyRef.current = true;
     };
 
@@ -687,18 +716,18 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
       testSessionId: formState.testSessionId,
     });
     const serialised = JSON.stringify(snapshot);
-    window.localStorage.setItem(APP_STATE_STORAGE_KEY, serialised);
+      window.localStorage.setItem(appStateStorageKey, serialised);
     if (serialised === lastHistorySnapshotRef.current) {
       return;
     }
     if (suppressHistoryPushRef.current) {
       suppressHistoryPushRef.current = false;
-      window.history.replaceState({ derAppState: snapshot }, "", getPathForState(snapshot));
+      window.history.replaceState({ derAppState: snapshot }, "", getPathForState(snapshot, routeBase));
     } else {
-      window.history.pushState({ derAppState: snapshot }, "", getPathForState(snapshot));
+      window.history.pushState({ derAppState: snapshot }, "", getPathForState(snapshot, routeBase));
     }
     lastHistorySnapshotRef.current = serialised;
-  }, [session, screen, selectedSessionId, selectedPlannerEventId, selectedDriverTimelineId, formState.testSessionId]);
+  }, [appStateStorageKey, routeBase, session, screen, selectedSessionId, selectedPlannerEventId, selectedDriverTimelineId, formState.testSessionId]);
 
   useEffect(() => {
     setFormState((current) => ({
@@ -906,6 +935,33 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
     title: screen,
     subtitle: "Manage the current area of the coaching platform."
   };
+  const mobileQuickNavItems = useMemo(() => {
+    if (!session) {
+      return [];
+    }
+    if (["driver", "parent"].includes(session.role)) {
+      return [
+        { label: "Portal", screen: "My Portal" },
+        { label: "History", screen: "History" },
+      ];
+    }
+    return [
+      { label: "Home", screen: "Home" },
+      { label: "History", screen: "History" },
+      { label: "Events", screen: "View Upcoming Events" },
+      { label: "Reports", screen: "Reports" },
+      { label: "Settings", screen: "General Settings" },
+    ];
+  }, [session]);
+  const activeMobileQuickNav = useMemo(() => {
+    if (["Create Event", "View Upcoming Events", "View Past Events", "Calendar", "Event Sessions", "Planned Session", "Create Session"].includes(screen)) {
+      return "View Upcoming Events";
+    }
+    if (["General Settings", "AI Settings", "Email Settings", "Operations", "Beta Diagnostics"].includes(screen)) {
+      return "General Settings";
+    }
+    return screen;
+  }, [screen]);
   const portalHistorySessions = useMemo(() => {
     if (!portalData) return [];
     if (portalData.portal_type === "parent") {
@@ -1013,6 +1069,10 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
     } else if (screen === "Email Settings") {
       badges.push({ label: emailSettings.smtpHost || "SMTP not configured", tone: "default" });
       badges.push({ label: emailSettings.fromEmail || "No sender email", tone: "neutral" });
+    } else if (screen === "Beta Diagnostics") {
+      badges.push({ label: `${sessionsStore.length} uploads`, tone: "default" });
+      badges.push({ label: `${testSessionsStore.length} planned sessions`, tone: "neutral" });
+      badges.push({ label: `${setupDatabaseStore.total_entries || 0} setup records`, tone: "neutral" });
     }
 
     badges.push({
@@ -2184,11 +2244,11 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
     ];
 
     return (
-      <main className="login-stage flex items-center justify-center px-6 py-12">
+      <main className={`login-stage flex items-center justify-center px-4 py-6 sm:px-6 sm:py-12 ${isMobileExperience ? "login-stage-mobile" : ""}`}>
         <img alt="" className="login-mark login-mark-top" src="/DER_logo_transparent.png" />
         <img alt="" className="login-mark login-mark-bottom" src="/DER_logo_transparent.png" />
-        <div className="login-shell grid lg:grid-cols-[1fr_0.78fr]">
-          <section className="p-10 lg:p-12">
+        <div className={`login-shell ${isMobileExperience ? "login-shell-mobile" : "grid lg:grid-cols-[1fr_0.78fr]"}`}>
+          <section className={`${isMobileExperience ? "p-5 sm:p-6" : "p-10 lg:p-12"}`}>
             <p className="text-xs uppercase tracking-[0.3em] text-blue-300">
               {authMode === "login"
                 ? "Sign In"
@@ -2202,7 +2262,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
             </p>
             <h2 className="mt-5 text-4xl font-semibold tracking-tight">
               {authMode === "login"
-                ? "Login to DER"
+                ? isMobileExperience ? "Login to DER Mobile" : "Login to DER"
                 : authMode === "register"
                   ? "Register for platform access"
                   : authMode === "reset-request"
@@ -2213,7 +2273,9 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
             </h2>
             <p className="mt-4 max-w-xl text-sm muted">
               {authMode === "login"
-                ? "Use your account details to open the coaching workspace."
+                ? isMobileExperience
+                  ? "Use your account details to open the mobile coaching workspace."
+                  : "Use your account details to open the coaching workspace."
                 : authMode === "register"
                   ? "Drivers, parents, and coaches can register here. An administrator must approve the account before sign in is allowed."
                   : authMode === "reset-request"
@@ -2223,6 +2285,9 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                       : "Enter the emailed reset token, choose a new password, and return to sign in."}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
+              <a className="workspace-ghost px-4 py-2 text-sm" href={isMobileExperience ? "/" : "/mobile"}>
+                {isMobileExperience ? "Open desktop version" : "Open mobile version"}
+              </a>
               <button
                 className={`workspace-ghost px-4 py-2 text-sm ${authMode === "login" ? "button-is-active" : ""}`}
                 type="button"
@@ -2485,22 +2550,36 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
             {error ? <p className="mt-5 text-sm text-rose-300">{error}</p> : null}
           </section>
 
-          <aside className="login-side flex flex-col justify-between p-10 lg:p-12">
+          <aside className={`login-side flex flex-col justify-between ${isMobileExperience ? "p-5 sm:p-6" : "p-10 lg:p-12"}`}>
             <div className="relative z-10">
               <div className="brand-logo-login-wrap">
                 <img alt="Dave Edwards Racing" className="brand-logo brand-logo-login" src="/DER_logo_transparent.png" />
               </div>
-              <p className="mt-8 text-xs uppercase tracking-[0.3em] text-lime-300/90">Telemetry Analysis Software</p>
-              <h1 className="mt-5 text-4xl font-semibold leading-tight">Telemetry comparison, AI debriefs, and coaching reports for your drivers.</h1>
+              <p className="mt-8 text-xs uppercase tracking-[0.3em] text-lime-300/90">
+                {isMobileExperience ? "Mobile telemetry workspace" : "Telemetry Analysis Software"}
+              </p>
+              <h1 className="mt-5 text-4xl font-semibold leading-tight">
+                {isMobileExperience
+                  ? "Use DER on the pit wall, in the van, or between runs."
+                  : "Telemetry comparison, AI debriefs, and coaching reports for your drivers."}
+              </h1>
               <p className="mt-5 max-w-md text-lg muted">
-                Compare drivers side by side, review lap trends, and turn UniPro session data into structured coaching feedback.
+                {isMobileExperience
+                  ? "A streamlined mobile-first view keeps history, reports, event planning, and driver portals usable on phones without the full desktop workspace getting in the way."
+                  : "Compare drivers side by side, review lap trends, and turn UniPro session data into structured coaching feedback."}
               </p>
             </div>
             <div className="relative z-10 mt-10 rounded-2xl border border-white/10 bg-slate-950/20 p-6">
-              <p className="text-lg font-semibold">Built for the team garage</p>
-              <p className="mt-2 text-sm muted">Manager, driver, and parent access in one secure coaching workspace.</p>
+              <p className="text-lg font-semibold">{isMobileExperience ? "Built for quick mobile access" : "Built for the team garage"}</p>
+              <p className="mt-2 text-sm muted">
+                {isMobileExperience
+                  ? "Open the right version automatically on a phone, while still keeping the desktop workspace for full debrief work."
+                  : "Manager, driver, and parent access in one secure coaching workspace."}
+              </p>
               <div className="mt-5 grid gap-3">
-                {["Driver comparison and trends", "Session history and report review", "Role-based access for your team"].map((item) => (
+                {(isMobileExperience
+                  ? ["Mobile-first login and navigation", "Fast access to history, reports, and planning", "Keep the full desktop app separate when you need depth"]
+                  : ["Driver comparison and trends", "Session history and report review", "Role-based access for your team"]).map((item) => (
                   <div key={item} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
                     {item}
                   </div>
@@ -2515,17 +2594,23 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
 
   return (
     <main className="workspace-stage">
-      <div className="workspace-shell grid min-h-screen grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div className={`workspace-shell grid min-h-screen grid-cols-1 ${isMobileExperience ? "workspace-shell-mobile" : "lg:grid-cols-[300px_minmax(0,1fr)]"}`}>
         {mobileMenuOpen ? <button aria-label="Close menu" className="workspace-mobile-backdrop" onClick={() => setMobileMenuOpen(false)} type="button" /> : null}
-        <aside className={`workspace-sidebar flex flex-col p-6 ${mobileMenuOpen ? "mobile-open" : ""}`}>
+        <aside className={`workspace-sidebar flex flex-col p-6 ${mobileMenuOpen ? "mobile-open" : ""} ${isMobileExperience ? "workspace-sidebar-mobile" : ""}`}>
           <div className="workspace-brand workspace-brand-premium pb-8">
             <div>
               <div className="brand-logo-shell-wrap">
                 <img alt="Dave Edwards Racing" className="brand-logo brand-logo-shell" src="/DER_logo_transparent.png" />
               </div>
               <h2 className="mt-3 text-lg font-semibold">DER</h2>
-              <p className="text-xs uppercase tracking-[0.3em] text-lime-300">Telemetry Analysis Software</p>
-              <p className="workspace-brand-note mt-4">Race weekend planning, telemetry review, and report publishing in one coaching workspace.</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-lime-300">
+                {isMobileExperience ? "Mobile workspace" : "Telemetry Analysis Software"}
+              </p>
+              <p className="workspace-brand-note mt-4">
+                {isMobileExperience
+                  ? "A phone-first DER experience with quick access to the parts you actually use on mobile."
+                  : "Race weekend planning, telemetry review, and report publishing in one coaching workspace."}
+              </p>
             </div>
           </div>
           <div className="workspace-account workspace-account-premium mt-6 rounded-2xl border border-white/10 p-4">
@@ -2554,7 +2639,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
           ) : null}
         </aside>
 
-        <section className="workspace-content p-5 lg:p-6">
+        <section className={`workspace-content p-4 sm:p-5 lg:p-6 ${isMobileExperience ? "workspace-content-mobile" : ""}`}>
           <div className={`workspace-canvas ${appSettings.compactTables ? "workspace-compact" : ""}`}>
           <header className="workspace-header">
             <div className="workspace-mobile-bar">
@@ -2574,7 +2659,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 <p className="mt-1 font-medium text-white">{screen}</p>
               </div>
             </div>
-            <div className="workspace-screen-card workspace-screen-card-premium">
+            <div className={`workspace-screen-card workspace-screen-card-premium ${isMobileExperience ? "workspace-screen-card-mobile" : ""}`}>
               <p className="workspace-section-label">{screenMeta.eyebrow}</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">{screenMeta.title}</h1>
               <p className="workspace-screen-subtitle">{screenMeta.subtitle}</p>
@@ -2629,6 +2714,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 messages={chatMessages}
                 model={formState.model}
                 provider={appSettings.aiProvider}
+                mobileExperience={isMobileExperience}
                 onChangeInput={setChatInput}
                 onSubmit={handleChatSubmit}
               />
@@ -2693,6 +2779,23 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
               />
             ) : null}
 
+            {!["driver", "parent"].includes(session.role) && screen === "Beta Diagnostics" ? (
+              <BetaDiagnosticsPanel
+                appSettings={appSettings}
+                authAuditEntries={authAuditEntries}
+                backupEntries={backupEntries}
+                emailDeliveryLog={emailDeliveryLog}
+                emailSettings={emailSettings}
+                operationsHealth={operationsHealth}
+                reportHealth={reportHealth}
+                reportsStore={reportsStore}
+                sessionsStore={sessionsStore}
+                setupDatabaseStore={setupDatabaseStore}
+                testSessionsStore={testSessionsStore}
+                userAccountsStore={userAccountsStore}
+              />
+            ) : null}
+
             {!["driver", "parent"].includes(session.role) && ["Create Event", "View Upcoming Events", "View Past Events"].includes(screen) ? (
               <EventManager
                 eventsStore={eventsStore}
@@ -2703,6 +2806,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 tracksStore={tracksStore}
                 selectedPlannerEventId={selectedPlannerEventId}
                 editingEventId={editingEventId}
+                mobileExperience={isMobileExperience}
                 editingTestSessionId={editingTestSessionId}
                 mode={screen}
                 onSelectEvent={openEventSessions}
@@ -2747,6 +2851,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 sessionsStore={sessionsStore}
                 reportsStore={reportsStore}
                 loading={loading}
+                mobileExperience={isMobileExperience}
                 selectedPlannerEventId={selectedPlannerEventId}
                 onBackToEvents={() => {
                   const eventItem = eventsStore.find((item) => item.id === selectedPlannerEventId) || null;
@@ -2768,6 +2873,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                     ? selectedTestSession.uploaded_runs
                     : sessionsStore.filter((item) => item.test_session_id === selectedTestSession?.id))}
                   loading={loading}
+                  mobileExperience={isMobileExperience}
                   onBack={() => setScreen("Event Sessions")}
                   onDeleteSession={handleDeleteTestSession}
                   onEditSession={startEditTestSession}
@@ -2788,6 +2894,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 eventsStore={eventsStore}
                 testSessionDraft={testSessionDraft}
                 editingTestSessionId={editingTestSessionId}
+                mobileExperience={isMobileExperience}
                 onChange={setTestSessionDraft}
                 onCancel={() => {
                   const eventId = testSessionDraft.event_id || selectedPlannerEventId;
@@ -2848,6 +2955,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
               <SetupDatabasePage
                 setupDatabase={setupDatabaseStore}
                 loading={loading}
+                mobileExperience={isMobileExperience}
                 onOpenPlannedSession={(testSessionId) => {
                   const testSession = testSessionsStore.find((item) => item.id === testSessionId);
                   if (testSession) {
@@ -2924,6 +3032,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 loading={loading}
                 generateNotice={reportNotice}
                 audience={formState.audience}
+                mobileExperience={isMobileExperience}
                 onAudienceChange={(audience) => setFormState((current) => ({ ...current, audience }))}
                 onSelectSession={async (sessionId) => {
                   await loadSessionDetail(sessionId);
@@ -2953,6 +3062,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 selectedSessionId={selectedSessionId}
                 selectedSessionDetail={selectedSessionDetail}
                 sessions={["driver", "parent"].includes(session.role) ? portalHistorySessions : sessionsStore}
+                mobileExperience={isMobileExperience}
                 onSelectSession={async (sessionId) => {
                   await loadSessionDetail(sessionId);
                 }}
@@ -2971,6 +3081,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 tracks={tracksStore}
                 mapsApiKey={appSettings.showTrackMaps ? mapsApiKey : ""}
                 speedUnit={appSettings.speedUnit || "kmh"}
+                mobileExperience={isMobileExperience}
                 onBack={() => setScreen("History")}
                 onGenerateFeedback={handleGenerateFeedback}
                 onExportPdf={handleExportPdf}
@@ -3015,6 +3126,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 lastSeenSessionAt={portalSeenSnapshot.lastSeenSessionAt}
                 lastSeenReportAt={portalSeenSnapshot.lastSeenReportAt}
                 speedUnit={appSettings.speedUnit || "kmh"}
+                mobileExperience={isMobileExperience}
                 onOpenSession={(sessionId) => {
                   loadSessionDetail(sessionId);
                   setScreen("History");
@@ -3027,6 +3139,7 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
                 lastSeenSessionAt={portalSeenSnapshot.lastSeenSessionAt}
                 lastSeenReportAt={portalSeenSnapshot.lastSeenReportAt}
                 speedUnit={appSettings.speedUnit || "kmh"}
+                mobileExperience={isMobileExperience}
                 onOpenSession={(sessionId) => {
                   loadSessionDetail(sessionId);
                   setScreen("History");
@@ -3034,6 +3147,27 @@ export default function DashboardShellV2({ initialScreen = "Home", initialSessio
               />
             ) : null}
           </section>
+          {isMobileExperience && mobileQuickNavItems.length ? (
+            <nav className="workspace-mobile-tabbar" aria-label="Mobile quick navigation">
+              {mobileQuickNavItems.map((item) => (
+                <button
+                  key={item.label}
+                  className={`workspace-mobile-tab ${activeMobileQuickNav === item.screen ? "is-active" : ""}`}
+                  onClick={() => handleNavItemSelection(item.screen)}
+                  type="button"
+                >
+                  <span className="workspace-mobile-tab-label">{item.label}</span>
+                </button>
+              ))}
+              <button
+                className={`workspace-mobile-tab ${mobileMenuOpen ? "is-active" : ""}`}
+                onClick={() => setMobileMenuOpen((current) => !current)}
+                type="button"
+              >
+                <span className="workspace-mobile-tab-label">More</span>
+              </button>
+            </nav>
+          ) : null}
           </div>
         </section>
       </div>
@@ -3272,7 +3406,93 @@ function AISettingsPanel({
   );
 }
 
-function ChatBotPanel({ messages, chatInput, onChangeInput, onSubmit, model, provider, loading }) {
+function ChatBotPanel({ messages, chatInput, onChangeInput, onSubmit, model, provider, loading, mobileExperience = false }) {
+  if (mobileExperience) {
+    return (
+      <section className="workspace-page mobile-chat-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy">
+            <p className="workspace-section-label">Mobile Chat</p>
+            <h2 className="workspace-hero-title">Ask the assistant from the phone.</h2>
+            <p className="workspace-hero-text">A tighter chat view for quick coaching questions, workflow help, and setup or telemetry prompts between runs.</p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Provider</p>
+              <p className="workspace-kpi-value">{provider === "openai" ? "OpenAI" : "Ollama"}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Model</p>
+              <p className="workspace-kpi-detail mt-2">{model || "Not set"}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Messages</p>
+              <p className="workspace-kpi-value">{messages.length}</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid gap-4">
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Conversation</p>
+                <h3 className="mt-2 text-xl font-semibold">{provider === "openai" ? "OpenAI assistant" : "Local Ollama assistant"}</h3>
+              </div>
+              <span className="pill">{provider === "openai" ? `OpenAI - ${model || "No model selected"}` : model || "No model selected"}</span>
+            </div>
+            <div className="chat-thread mt-4">
+              {messages.map((message, index) => (
+                <div key={`${message.role}-${index}`} className={`chat-bubble ${message.role === "assistant" ? "assistant" : "user"}`}>
+                  <p className="chat-role">{message.role === "assistant" ? "Assistant" : "You"}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{message.content}</p>
+                </div>
+              ))}
+              {loading ? (
+                <div className="chat-bubble assistant">
+                  <p className="chat-role">Assistant</p>
+                  <p className="mt-2 text-sm">Thinking...</p>
+                </div>
+              ) : null}
+            </div>
+            <form className="mt-4 grid gap-3" onSubmit={onSubmit}>
+              <textarea
+                className="workspace-field min-h-[120px]"
+                placeholder="Ask about drivers, tracks, reports, event workflow, or telemetry..."
+                value={chatInput}
+                onChange={(event) => onChangeInput(event.target.value)}
+              />
+              <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" disabled={loading || !chatInput.trim()} type="submit">
+                Send message
+              </button>
+            </form>
+          </article>
+
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Quick Prompts</p>
+                <h3 className="mt-2 text-xl font-semibold">Start with something useful</h3>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {[
+                "What should I look for when comparing two junior drivers at PF International?",
+                "Help me plan a Saturday practice workflow for four drivers.",
+                "What settings in this app should I configure before real UniPro files arrive?",
+                "How should I structure corner notes so later GPS analysis is useful?",
+              ].map((prompt) => (
+                <button key={prompt} className="workspace-subtle-card p-4 text-left" type="button" onClick={() => onChangeInput(prompt)}>
+                  <p className="text-sm">{prompt}</p>
+                </button>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="workspace-page">
       <section className="workspace-hero workspace-hero-premium">

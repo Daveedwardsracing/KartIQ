@@ -116,6 +116,15 @@ body {
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
 }
 
+.login-stage-mobile {
+  align-items: stretch;
+}
+
+.login-shell-mobile {
+  display: grid;
+  width: min(100%, 560px);
+}
+
 .login-side {
   position: relative;
   background:
@@ -233,6 +242,119 @@ body {
   inset: 0;
   z-index: 40;
   background: rgba(3, 8, 16, 0.58);
+}
+
+.workspace-shell-mobile {
+  background:
+    linear-gradient(180deg, rgba(11, 19, 32, 0.96), rgba(10, 18, 31, 0.98));
+}
+
+.workspace-sidebar-mobile {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  width: min(86vw, 320px);
+  transform: translateX(-105%);
+  transition: transform 180ms ease;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
+}
+
+.workspace-sidebar-mobile.mobile-open {
+  transform: translateX(0);
+}
+
+.workspace-content-mobile {
+  padding-bottom: 6.5rem;
+}
+
+.workspace-screen-card-mobile {
+  border-radius: 22px;
+  padding: 1.15rem;
+}
+
+.workspace-screen-card-mobile h1 {
+  font-size: 1.85rem;
+  line-height: 1.12;
+}
+
+.workspace-mobile-tabbar {
+  position: fixed;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.85rem;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.5rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 18, 31, 0.92);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+}
+
+.workspace-mobile-tab {
+  min-height: 3.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.workspace-mobile-tab.is-active {
+  border-color: rgba(93, 143, 255, 0.38);
+  background: rgba(93, 143, 255, 0.16);
+  color: #eff5ff;
+}
+
+.workspace-mobile-tab-label {
+  display: block;
+  line-height: 1.2;
+}
+
+.mobile-session-page {
+  gap: 1rem;
+}
+
+.mobile-session-hero {
+  gap: 1rem;
+}
+
+.mobile-session-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.mobile-session-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mobile-summary-stack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.mobile-session-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.mobile-results-tab-row {
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.mobile-results-tab-row .results-tab {
+  white-space: nowrap;
 }
 
 .workspace-mobile-bar {
@@ -765,6 +887,48 @@ body {
   display: grid;
   gap: 0.9rem;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+@media (max-width: 1023px) {
+  .workspace-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: min(86vw, 320px);
+    transform: translateX(-105%);
+    transition: transform 180ms ease;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
+  }
+
+  .workspace-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 1024px) {
+  .workspace-sidebar-mobile {
+    width: min(28rem, 360px);
+  }
+}
+
+@media (max-width: 640px) {
+  .login-mark {
+    display: none;
+  }
+
+  .brand-logo-login {
+    max-width: 320px;
+  }
+
+  .workspace-mobile-tabbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mobile-session-kpis,
+  .mobile-session-stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .workspace-two-column {

@@ -122,6 +122,7 @@ function buildBaselineDraft(selectedTrack) {
 export default function SetupDatabasePage({
   setupDatabase,
   loading,
+  mobileExperience = false,
   onOpenPlannedSession,
   onOpenUploadSession,
   onSaveTrackConfig,
@@ -269,6 +270,190 @@ export default function SetupDatabasePage({
     } finally {
       setAiLoading(false);
     }
+  }
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-setup-db-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy">
+            <p className="workspace-section-label">Mobile Setup Database</p>
+            <h2 className="workspace-hero-title">Browse saved setup patterns on the phone.</h2>
+            <p className="workspace-hero-text">Use a simpler mobile view for track baselines, filtered setup records, quick comparisons, and AI setup questions.</p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Tracks</p>
+              <p className="workspace-kpi-value">{setupDatabase?.total_tracks || 0}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Setups</p>
+              <p className="workspace-kpi-value">{setupDatabase?.total_entries || 0}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Uploads</p>
+              <p className="workspace-kpi-value">{totalUploads}</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid gap-4">
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Track</p>
+                <h3 className="mt-2 text-xl font-semibold">{selectedTrack?.track_name || "Choose a track"}</h3>
+              </div>
+              <span className="pill pill-neutral">{trackOptions.length}</span>
+            </div>
+            <select className="workspace-field mt-4" value={selectedTrackName} onChange={(event) => setSelectedTrackName(event.target.value)}>
+              {trackOptions.map((trackName) => <option key={trackName} value={trackName}>{trackName}</option>)}
+            </select>
+            {selectedTrack ? (
+              <>
+                <div className="mt-4 mobile-session-stats-grid">
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Best lap setup</p>
+                    <p className="workspace-kpi-detail mt-2">{selectedTrack.leaders?.best_lap?.driver_name || "No leader yet"}</p>
+                  </div>
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Best sector sum</p>
+                    <p className="workspace-kpi-detail mt-2">{selectedTrack.leaders?.best_sector_sum?.driver_name || "No leader yet"}</p>
+                  </div>
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Top speed leader</p>
+                    <p className="workspace-kpi-detail mt-2">{selectedTrack.leaders?.top_speed?.driver_name || "No leader yet"}</p>
+                  </div>
+                </div>
+                <div className="workspace-subtle-card mt-4 p-4">
+                  <p className="text-sm font-medium text-white">Recommended baseline</p>
+                  <p className="mt-2 text-sm muted">{baselineDraft.label || "Recommended baseline"}</p>
+                  <div className="mt-3 grid gap-2">
+                    {Object.entries(baselineDraft.setup || {}).slice(0, 6).map(([field, value]) => (
+                      <div key={`mobile-baseline-${field}`} className="session-debrief-row">
+                        <span>{formatFieldLabel(field)}</span>
+                        <span>{formatSetupValue(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </article>
+
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Filters</p>
+                <h3 className="mt-2 text-xl font-semibold">Narrow the setup bank</h3>
+              </div>
+              <span className="pill pill-neutral">{filteredEntries.length}</span>
+            </div>
+            <div className="mt-4 grid gap-3">
+              <input className="workspace-field" placeholder="Search driver, session, or conditions" type="text" value={search} onChange={(event) => setSearch(event.target.value)} />
+              <select className="workspace-field" value={classFilter} onChange={(event) => setClassFilter(event.target.value)}>
+                <option value="">All classes</option>
+                {classOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+              <select className="workspace-field" value={driverFilter} onChange={(event) => setDriverFilter(event.target.value)}>
+                <option value="">All drivers</option>
+                {driverOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+              <select className="workspace-field" value={sessionTypeFilter} onChange={(event) => setSessionTypeFilter(event.target.value)}>
+                <option value="">All session types</option>
+                {sessionTypeOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </div>
+          </article>
+
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Setups</p>
+                <h3 className="mt-2 text-xl font-semibold">Filtered entries</h3>
+              </div>
+              <span className="pill pill-neutral">{filteredEntries.length}</span>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {filteredEntries.map((entry) => {
+                const compareSelected = compareIds.includes(entry.id);
+                return (
+                  <div key={entry.id} className="workspace-subtle-card p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{entry.driver_name}</p>
+                        <p className="mt-1 text-sm muted">{[entry.session_name, entry.session_type, entry.session_date].filter(Boolean).join(" / ")}</p>
+                      </div>
+                      <label className={`pill selection-pill ${compareSelected ? "is-selected" : "pill-neutral"} cursor-pointer`}>
+                        <input
+                          className="hidden"
+                          type="checkbox"
+                          checked={compareSelected}
+                          onChange={(event) => {
+                            setCompareIds((current) => (
+                              event.target.checked
+                                ? [...current, entry.id].slice(-2)
+                                : current.filter((item) => item !== entry.id)
+                            ));
+                          }}
+                        />
+                        <span className="selection-pill-marker" aria-hidden="true">OK</span>
+                        <span>Compare</span>
+                      </label>
+                    </div>
+                    <div className="workflow-chip-grid mt-3">
+                      {entry.best_result?.is_best_lap_leader ? <span className="pill">Best lap</span> : null}
+                      {entry.best_result?.is_best_sector_sum_leader ? <span className="pill">Best sectors</span> : null}
+                      {entry.best_result?.is_top_speed_leader ? <span className="pill">Top speed</span> : null}
+                    </div>
+                    <div className="mt-3 grid gap-2">
+                      {Object.entries(entry.setup || {}).slice(0, 5).map(([field, value]) => (
+                        <div key={`${entry.id}-${field}`} className="session-debrief-row">
+                          <span>{formatFieldLabel(field)}</span>
+                          <span>{formatSetupValue(value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button className="workspace-ghost px-4 py-3 text-sm" type="button" onClick={() => onOpenPlannedSession(entry.test_session_id)}>Open planned session</button>
+                      <button className="workspace-ghost px-4 py-3 text-sm" type="button" onClick={() => onOpenUploadSession(entry.test_session_id)}>Open upload flow</button>
+                      <button className="workspace-primary px-4 py-3 text-sm text-white" type="button" onClick={() => handlePinBaselineFromEntry(entry)}>Pin baseline</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">AI Analysis</p>
+                <h3 className="mt-2 text-xl font-semibold">Ask about this setup bank</h3>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3">
+              <div className="chip-row">
+                {AI_PROMPT_PRESETS.map((prompt) => (
+                  <button key={prompt} className="telemetry-channel-chip" type="button" onClick={() => { setAiPrompt(prompt); handleRunAiAnalysis(prompt); }}>
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+              <textarea className="workspace-field min-h-[120px]" placeholder="Ask what setup trends seem strongest on this track..." value={aiPrompt} onChange={(event) => setAiPrompt(event.target.value)} />
+              <button className="workspace-primary px-4 py-3 text-sm text-white" disabled={aiLoading || !aiPrompt.trim()} type="button" onClick={() => handleRunAiAnalysis(aiPrompt)}>
+                {aiLoading ? "Analysing..." : "Analyse setup bank"}
+              </button>
+              {aiReply ? (
+                <div className="workspace-subtle-card p-4">
+                  <p className="text-sm whitespace-pre-wrap">{aiReply}</p>
+                </div>
+              ) : null}
+            </div>
+          </article>
+        </div>
+      </div>
+    );
   }
 
   return (

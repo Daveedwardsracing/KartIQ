@@ -465,9 +465,19 @@ def _classify_lap_records(lap_records: list[dict]) -> list[dict]:
 
     thresholds = _lap_quality_thresholds(lap_records)
     sample_threshold = _lap_sample_threshold(lap_records)
+    median_lap_time = thresholds["median"] if thresholds else _percentile(
+        sorted(
+            item["lap_time"]
+            for item in lap_records
+            if isinstance(item.get("lap_time"), (int, float)) and item["lap_time"] > 0
+        ),
+        0.5,
+    )
     sorted_times = sorted(item["lap_time"] for item in lap_records if isinstance(item.get("lap_time"), (int, float)) and item["lap_time"] > 0)
     unique_fastest_gap = None
     unique_slowest_gap = None
+    first_lap_number = min((item.get("lap_number") for item in lap_records if isinstance(item.get("lap_number"), int)), default=None)
+    last_lap_number = max((item.get("lap_number") for item in lap_records if isinstance(item.get("lap_number"), int)), default=None)
     if len(sorted_times) >= 4:
         if sorted_times[1] - sorted_times[0] > max(1.5, sorted_times[1] * 0.03):
             unique_fastest_gap = sorted_times[0]
@@ -490,6 +500,15 @@ def _classify_lap_records(lap_records: list[dict]) -> list[dict]:
                 flags.append("isolated_fast_gap")
             if unique_slowest_gap is not None and lap_time == unique_slowest_gap:
                 flags.append("isolated_slow_gap")
+            is_opening_lap = first_lap_number is not None and item.get("lap_number") == first_lap_number
+            is_closing_lap = last_lap_number is not None and item.get("lap_number") == last_lap_number
+            clearly_off_pace = median_lap_time and lap_time >= max(median_lap_time * 1.08, median_lap_time + 4.0)
+            low_samples = sample_threshold is not None and int(item.get("sample_count", 0) or 0) < max(sample_threshold, 5)
+            if len(lap_records) >= 3 and clearly_off_pace:
+                if is_opening_lap and (low_samples or "too_slow_outlier" in flags or "isolated_slow_gap" in flags):
+                    flags.append("out_lap")
+                if is_closing_lap and (low_samples or "too_slow_outlier" in flags or "isolated_slow_gap" in flags):
+                    flags.append("in_lap")
         if item.get("invalid_true_count", 0) > 0:
             flags.append("flagged_invalid")
         if sample_threshold is not None and int(item.get("sample_count", 0) or 0) < sample_threshold:
@@ -505,7 +524,7 @@ def _classify_lap_records(lap_records: list[dict]) -> list[dict]:
         classified.append(normalized)
 
     if valid_count == 0:
-        relaxable_flags = {"too_fast_outlier", "too_slow_outlier", "isolated_fast_gap", "isolated_slow_gap"}
+        relaxable_flags = {"too_fast_outlier", "too_slow_outlier", "isolated_fast_gap", "isolated_slow_gap", "out_lap", "in_lap"}
         recovered = 0
         for item in classified:
             preserved_flags = [flag for flag in item["quality_flags"] if flag not in relaxable_flags]

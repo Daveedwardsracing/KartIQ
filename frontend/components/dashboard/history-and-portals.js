@@ -154,8 +154,92 @@ function renderPortalReportCard(entry, onOpenSession, lastSeenReportAt = "") {
   );
 }
 
-export function HistoryPanel({ sessions, selectedSessionId, selectedSessionDetail, onSelectSession, onOpenSession, onDeleteSession }) {
+export function HistoryPanel({ sessions, selectedSessionId, selectedSessionDetail, onSelectSession, onOpenSession, onDeleteSession, mobileExperience = false }) {
   const latestSession = sessions[0] || null;
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-history-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy max-w-3xl">
+            <p className="workspace-section-label">Mobile History</p>
+            <h2 className="workspace-hero-title">Reopen sessions quickly from the phone.</h2>
+            <p className="workspace-hero-text">Use a simpler archive view for the latest uploaded runs, saved reports, and quick reopen actions.</p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Saved sessions</p>
+              <p className="workspace-kpi-value">{sessions.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Latest upload</p>
+              <p className="workspace-kpi-detail mt-2">{latestSession?.event_round || "None yet"}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Saved reports</p>
+              <p className="workspace-kpi-value">{selectedSessionDetail?.reports?.length || 0}</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid gap-4">
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Archive</p>
+                <h3 className="mt-2 text-xl font-semibold">Latest runs first</h3>
+              </div>
+              <span className="pill pill-neutral">{sessions.length}</span>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {sessions.map((session) => (
+                <div key={session.id} className={`workspace-subtle-card p-4 ${selectedSessionId === session.id ? "ring-1 ring-blue-400/30" : ""}`}>
+                  <button className="w-full text-left" onClick={() => onSelectSession(session.id)} type="button">
+                    <p className="font-medium">{session.event_round || session.event_name || "Uploaded session"}</p>
+                    <p className="mt-1 text-sm muted">{[session.event_name, session.session_type, session.created_at].filter(Boolean).join(" / ")}</p>
+                  </button>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onOpenSession(session.id)} type="button">Open</button>
+                    <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onDeleteSession?.(session)} type="button">Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Selected Session</p>
+                <h3 className="mt-2 text-xl font-semibold">{selectedSessionDetail?.session?.event_round || "Choose a session"}</h3>
+              </div>
+            </div>
+            {selectedSessionDetail?.session ? (
+              <div className="mt-4 grid gap-3">
+                <div className="workspace-subtle-card p-4">
+                  <p className="text-sm font-medium">Session details</p>
+                  <p className="mt-2 text-sm muted">{[selectedSessionDetail.session.event_name, selectedSessionDetail.session.session_type, selectedSessionDetail.session.created_at].filter(Boolean).join(" / ")}</p>
+                </div>
+                {selectedSessionDetail.reports?.length ? (
+                  <div className="workspace-subtle-card p-4">
+                    <p className="text-sm font-medium">Saved reports</p>
+                    <div className="mt-3 grid gap-2">
+                      {selectedSessionDetail.reports.slice(0, 3).map((report) => (
+                        <div key={report.id} className="session-debrief-row">
+                          <span>{portalReportAudienceLabel(report.audience)}</span>
+                          <span>{report.status || "draft"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : <p className="mt-4 muted">Select a saved session to open the detail view.</p>}
+          </article>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="workspace-page">
       <section className="workspace-hero workspace-hero-premium">
@@ -308,7 +392,7 @@ export function HistoryPanel({ sessions, selectedSessionId, selectedSessionDetai
   );
 }
 
-export function DriverPortalPanel({ portal, selectedSessionDetail, lastSeenSessionAt = "", lastSeenReportAt = "", onOpenSession, speedUnit = "kmh" }) {
+export function DriverPortalPanel({ portal, selectedSessionDetail, lastSeenSessionAt = "", lastSeenReportAt = "", onOpenSession, speedUnit = "kmh", mobileExperience = false }) {
   if (!portal) {
     return (
       <article className="app-panel p-5">
@@ -340,6 +424,149 @@ export function DriverPortalPanel({ portal, selectedSessionDetail, lastSeenSessi
       title: "Setup sheets available",
       detail: `${sessionsWithSetup.length} uploaded session${sessionsWithSetup.length === 1 ? "" : "s"} include saved kart setup you can reopen as a setup sheet.`,
     });
+  }
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-portal-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy">
+            <p className="workspace-section-label">Driver Portal</p>
+            <h2 className="workspace-hero-title">{portal.driver?.name || "Driver portal"}</h2>
+            <p className="workspace-hero-text">Your latest run, newest feedback, and setup sheet access in one phone-first portal.</p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Sessions</p>
+              <p className="workspace-kpi-value">{portal.sessions.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Reports</p>
+              <p className="workspace-kpi-value">{portal.reports.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Setup sheets</p>
+              <p className="workspace-kpi-value">{sessionsWithSetup.length}</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid gap-4">
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">What&apos;s New</p>
+                <h3 className="mt-2 text-xl font-semibold">Latest activity</h3>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {whatsNew.length ? whatsNew.map((item) => (
+                <div key={item.title} className="workspace-subtle-card p-4">
+                  <p className="font-medium">{item.title}</p>
+                  <p className="mt-2 text-sm muted">{item.detail}</p>
+                </div>
+              )) : (
+                <div className="workspace-subtle-card p-4">
+                  <p className="font-medium">Portal ready</p>
+                  <p className="mt-2 text-sm muted">Uploads and published reports will appear here as soon as they are shared.</p>
+                </div>
+              )}
+            </div>
+          </article>
+
+          {latestSession ? (
+            <article className="app-panel p-4">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div>
+                  <p className="workspace-section-label">Latest Run</p>
+                  <h3 className="mt-2 text-xl font-semibold">{latestSession.event_round}</h3>
+                </div>
+                {isNewPortalItem(latestSession.created_at, lastSeenSessionAt) ? <span className="pill">New</span> : null}
+              </div>
+              <p className="mt-4 text-sm muted">{latestSession.event_name} / {latestSession.session_type} / {formatPortalTimestamp(latestSession.created_at)}</p>
+              {latestSession.driver_analysis ? (
+                <div className="mt-4 mobile-session-stats-grid">
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Best lap</p>
+                    <p className="workspace-kpi-detail mt-2">{formatMetric(latestSession.driver_analysis.best_lap)}</p>
+                  </div>
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Rank</p>
+                    <p className="workspace-kpi-detail mt-2">{latestSession.driver_analysis.session_rank}</p>
+                  </div>
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Delta</p>
+                    <p className="workspace-kpi-detail mt-2">{formatMetric(latestSession.driver_analysis.lap_delta_to_fastest)}</p>
+                  </div>
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Top speed</p>
+                    <p className="workspace-kpi-detail mt-2">{formatDisplaySpeed(latestSession.driver_analysis.top_speed, speedUnit)} {getDisplaySpeedUnit(speedUnit)}</p>
+                  </div>
+                </div>
+              ) : null}
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button className="workspace-primary px-4 py-3 text-sm text-white" onClick={() => onOpenSession(latestSession.id)} type="button">
+                  Open latest session
+                </button>
+                {latestSession.test_session_id && setupHasValues(latestSession.setup) ? (
+                  <button
+                    className="workspace-ghost px-4 py-3 text-sm"
+                    onClick={() => openSetupReportWindow(latestSession.test_session_id, [portal.driver?.id])}
+                    type="button"
+                  >
+                    Setup sheet
+                  </button>
+                ) : null}
+              </div>
+            </article>
+          ) : null}
+
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Sessions</p>
+                <h3 className="mt-2 text-xl font-semibold">My runs</h3>
+              </div>
+              <span className="pill pill-neutral">{portal.sessions.length}</span>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {portal.sessions.map((session) => (
+                <button key={session.id} className="workspace-subtle-card p-4 text-left" onClick={() => onOpenSession(session.id)} type="button">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{session.event_round}</p>
+                      <p className="mt-1 text-sm muted">{session.event_name} / {session.session_type}</p>
+                    </div>
+                    <div className="chip-row">
+                      {isNewPortalItem(session.created_at, lastSeenSessionAt) ? <span className="pill">New</span> : null}
+                      {setupHasValues(session.setup) ? <span className="pill pill-neutral">Setup</span> : null}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Reports</p>
+                <h3 className="mt-2 text-xl font-semibold">Published feedback</h3>
+              </div>
+              <span className="pill pill-neutral">{portal.reports.length}</span>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {portal.reports.length ? portal.reports.map((entry) => renderPortalReportCard(entry, onOpenSession, lastSeenReportAt)) : (
+                <div className="workspace-subtle-card p-4">
+                  <p className="font-medium">No published reports yet</p>
+                  <p className="mt-2 text-sm muted">Shared feedback will appear here once it is published.</p>
+                </div>
+              )}
+            </div>
+          </article>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -490,7 +717,7 @@ export function DriverPortalPanel({ portal, selectedSessionDetail, lastSeenSessi
   );
 }
 
-export function ParentPortalPanel({ portal, lastSeenSessionAt = "", lastSeenReportAt = "", onOpenSession, speedUnit = "kmh" }) {
+export function ParentPortalPanel({ portal, lastSeenSessionAt = "", lastSeenReportAt = "", onOpenSession, speedUnit = "kmh", mobileExperience = false }) {
   if (!portal) {
     return (
       <article className="app-panel p-5">
@@ -510,6 +737,128 @@ export function ParentPortalPanel({ portal, lastSeenSessionAt = "", lastSeenRepo
   const latestReport = allReports[0] || null;
   const setupSheetCount = allSessions.filter((session) => setupHasValues(session.setup)).length;
   const needsAttentionCount = (portal.drivers || []).filter((entry) => !(entry.reports || []).length).length;
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-portal-page">
+        <section className="workspace-hero workspace-hero-premium mobile-planning-hero">
+          <div className="workspace-hero-copy">
+            <p className="workspace-section-label">Parent Portal</p>
+            <h2 className="workspace-hero-title">{portal.account?.name || "Parent portal"}</h2>
+            <p className="workspace-hero-text">See each driver&apos;s latest run, newly shared reports, and setup sheets in one clean mobile portal.</p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Drivers</p>
+              <p className="workspace-kpi-value">{portal.drivers?.length || 0}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Reports</p>
+              <p className="workspace-kpi-value">{allReports.length}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Setup sheets</p>
+              <p className="workspace-kpi-value">{setupSheetCount}</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid gap-4">
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Family Summary</p>
+                <h3 className="mt-2 text-xl font-semibold">What&apos;s new</h3>
+              </div>
+            </div>
+            <div className="mt-4 mobile-session-stats-grid">
+              <div className="workspace-kpi">
+                <p className="workspace-kpi-label">Latest session</p>
+                <p className="workspace-kpi-detail mt-2">{latestSession?.event_round || "No uploads yet"}</p>
+              </div>
+              <div className="workspace-kpi">
+                <p className="workspace-kpi-label">Latest report</p>
+                <p className="workspace-kpi-detail mt-2">{latestReport?.driver?.name || "Nothing shared yet"}</p>
+              </div>
+              <div className="workspace-kpi">
+                <p className="workspace-kpi-label">Needs report</p>
+                <p className="workspace-kpi-detail mt-2">{needsAttentionCount}</p>
+              </div>
+            </div>
+          </article>
+
+          <article className="app-panel p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <p className="workspace-section-label">Published Reports</p>
+                <h3 className="mt-2 text-xl font-semibold">Family shelf</h3>
+              </div>
+              <span className="pill pill-neutral">{allReports.length}</span>
+            </div>
+            <div className="mt-4 grid gap-3">
+              {allReports.length ? allReports.map((reportEntry) => (
+                <div key={`${reportEntry.id}-${reportEntry.created_at}-${reportEntry.driver?.id || "driver"}`} className="workspace-subtle-card p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{reportEntry.driver?.name} - {reportEntry.report.title || portalReportAudienceLabel(reportEntry.audience)}</p>
+                      <p className="mt-1 text-sm muted">{portalPublishedLabel(reportEntry)} / {formatPortalTimestamp(reportEntry.created_at)}</p>
+                    </div>
+                    {isNewPortalItem(reportEntry.created_at, lastSeenReportAt) ? <span className="pill">New</span> : null}
+                  </div>
+                  <p className="mt-3 text-sm">{reportEntry.report.overall_summary}</p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button className="workspace-ghost px-4 py-3 text-sm" onClick={() => onOpenSession(reportEntry.session_id)} type="button">
+                      Open session
+                    </button>
+                  </div>
+                </div>
+              )) : (
+                <div className="workspace-subtle-card p-4">
+                  <p className="font-medium">No published reports yet</p>
+                  <p className="mt-2 text-sm muted">Published summaries for assigned drivers will appear here.</p>
+                </div>
+              )}
+            </div>
+          </article>
+
+          {(portal.drivers || []).map((entry) => (
+            <article key={entry.driver?.id || entry.driver?.name} className="app-panel p-4">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div>
+                  <p className="workspace-section-label">Assigned Driver</p>
+                  <h3 className="mt-2 text-xl font-semibold">{entry.driver?.name || "Unknown driver"}</h3>
+                </div>
+                <span className="pill pill-neutral">{entry.driver?.class_name || "No class"}</span>
+              </div>
+              <div className="mt-4 grid gap-3">
+                {(entry.sessions || []).slice(0, 3).map((session) => (
+                  <button key={session.id} className="workspace-subtle-card p-4 text-left" onClick={() => onOpenSession(session.id)} type="button">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{session.event_round}</p>
+                        <p className="mt-1 text-sm muted">{session.event_name} / {session.session_type}</p>
+                      </div>
+                      <div className="chip-row">
+                        {isNewPortalItem(session.created_at, lastSeenSessionAt) ? <span className="pill">New</span> : null}
+                        {setupHasValues(session.setup) ? <span className="pill pill-neutral">Setup</span> : null}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                {(entry.reports || []).slice(0, 2).map((reportEntry) => renderPortalReportCard(reportEntry, onOpenSession, lastSeenReportAt))}
+                {!(entry.sessions || []).length && !(entry.reports || []).length ? (
+                  <div className="workspace-subtle-card p-4">
+                    <p className="font-medium">No portal activity yet</p>
+                    <p className="mt-2 text-sm muted">Uploads and shared reports for {entry.driver?.name} will appear here.</p>
+                  </div>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-5">
@@ -708,6 +1057,7 @@ export function SessionResultsPage({
   tracks = [],
   mapsApiKey = "",
   speedUnit = "kmh",
+  mobileExperience = false,
   onBack,
   onDeleteSession,
   onGenerateFeedback,
@@ -1112,6 +1462,11 @@ export function SessionResultsPage({
     () => displayedCornerRows.find((corner) => corner.id === hoveredCornerId) || displayedCornerRows[0] || null,
     [displayedCornerRows, hoveredCornerId],
   );
+  const mobileSessionTabs = [
+    ["overview", "Overview"],
+    ["lap-times", "Laps"],
+    ["reports", "Publishing"],
+  ];
 
   function applyPreset(preset) {
     if (!preset) return;
@@ -1154,6 +1509,300 @@ export function SessionResultsPage({
         <p className="text-xs uppercase tracking-[0.3em] text-blue-300">Session Results</p>
         <p className="mt-4 muted">Open a saved session from History to review the overview, comparison detail, and report publishing workflow.</p>
       </article>
+    );
+  }
+
+  if (mobileExperience) {
+    return (
+      <div className="workspace-page mobile-session-page">
+        <section className="workspace-hero workspace-hero-premium mobile-session-hero">
+          <div className="workspace-hero-copy max-w-3xl">
+            <p className="workspace-section-label">Mobile Session</p>
+            <h2 className="workspace-hero-title">{session.event_round}</h2>
+            <p className="workspace-hero-text">{[session.event_name, session.session_type, session.created_at].filter(Boolean).join(" / ")}</p>
+          </div>
+          <div className="mobile-session-kpis">
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">State</p>
+              <p className="workspace-kpi-value">{session.status || "uploaded"}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Drivers</p>
+              <p className="workspace-kpi-value">{session.driver_count || session.analysis?.drivers?.length || 0}</p>
+            </div>
+            <div className="workspace-kpi">
+              <p className="workspace-kpi-label">Reports</p>
+              <p className="workspace-kpi-value">{reports.length}</p>
+            </div>
+          </div>
+          <div className="mobile-session-action-row">
+            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onBack} type="button">Back</button>
+            <button className="workspace-ghost px-4 py-3 text-sm" onClick={onOpenReportStudio} type="button">Report Studio</button>
+            <button className="workspace-danger px-4 py-3 text-sm" onClick={() => onDeleteSession?.(session)} type="button">Delete</button>
+          </div>
+        </section>
+
+        <div className="results-tab-row mt-5 mobile-results-tab-row">
+          {mobileSessionTabs.map(([id, label]) => (
+            <button key={id} className={`results-tab ${activeTab === id ? "active" : ""}`} onClick={() => setActiveTab(id)} type="button">
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "overview" ? (
+          <div className="grid gap-4">
+            <article className="app-panel p-4">
+              <div className="mobile-summary-stack">
+                <div className="workspace-subtle-card p-4">
+                  <p className="workspace-section-label">Session Brief</p>
+                  <p className="mt-3 text-sm muted">
+                    {overviewLeader
+                      ? `${overviewLeader.name} is currently the benchmark lap in this upload.`
+                      : "Use the mobile summary first, then jump into laps or publishing."}
+                  </p>
+                  <div className="mt-4 chip-row">
+                    {track?.name ? <span className="pill pill-neutral">{track.name}</span> : null}
+                    {plannedSession ? <span className="pill pill-neutral">Setup linked</span> : null}
+                    {reports.length ? <span className="pill pill-neutral">{reports.length} saved reports</span> : null}
+                  </div>
+                </div>
+                <div className="workspace-subtle-card p-4">
+                  <p className="workspace-section-label">Telemetry readiness</p>
+                  <div className="mt-4 grid gap-2">
+                    <div className="session-debrief-row">
+                      <span>GPS</span>
+                      <span>{telemetryReadiness.gps ? "Ready" : "Missing"}</span>
+                    </div>
+                    <div className="session-debrief-row">
+                      <span>Speed</span>
+                      <span>{telemetryReadiness.speed ? "Ready" : "Missing"}</span>
+                    </div>
+                    <div className="session-debrief-row">
+                      <span>Brake / throttle</span>
+                      <span>{telemetryReadiness.brake && telemetryReadiness.throttle ? "Ready" : "Partial"}</span>
+                    </div>
+                    <div className="session-debrief-row">
+                      <span>Corner database</span>
+                      <span>{telemetryReadiness.cornerDatabase ? "Mapped" : "Missing"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article className="app-panel p-4">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div>
+                  <p className="workspace-section-label">Driver Snapshot</p>
+                  <h3 className="mt-2 text-xl font-semibold">Fastest laps at a glance</h3>
+                </div>
+                {comparisonLeader ? <span className="pill">{comparisonLeader.name} leads</span> : null}
+              </div>
+              <div className="mt-4 grid gap-3">
+                {overviewDrivers.map((driver) => {
+                  const delta = overviewLeader?.bestLap && driver.bestLap ? driver.bestLap - overviewLeader.bestLap : null;
+                  return (
+                    <div key={`${driver.id}-mobile-overview`} className="workspace-subtle-card p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{driver.name}</p>
+                          <p className="mt-1 text-sm muted">{driver.lapCount} displayed laps</p>
+                        </div>
+                        <span className="pill pill-neutral">{delta && delta > 0 ? `+${delta.toFixed(3)}s` : "Benchmark"}</span>
+                      </div>
+                      <div className="mt-4 mobile-session-stats-grid">
+                        <div className="workspace-kpi">
+                          <p className="workspace-kpi-label">Best</p>
+                          <p className="workspace-kpi-detail mt-2">{formatMetric(driver.bestLap)}</p>
+                        </div>
+                        <div className="workspace-kpi">
+                          <p className="workspace-kpi-label">Average</p>
+                          <p className="workspace-kpi-detail mt-2">{formatMetric(driver.averageLap, 3)}</p>
+                        </div>
+                        <div className="workspace-kpi">
+                          <p className="workspace-kpi-label">Top speed</p>
+                          <p className="workspace-kpi-detail mt-2">{formatSessionSpeed(driver.topSpeed)}</p>
+                        </div>
+                        <div className="workspace-kpi">
+                          <p className="workspace-kpi-label">Max RPM</p>
+                          <p className="workspace-kpi-detail mt-2">{formatMetric(driver.maxRpm)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </article>
+
+            {plannedSession?.drivers?.length ? (
+              <article className="app-panel p-4">
+                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <p className="workspace-section-label">Setup Context</p>
+                    <h3 className="mt-2 text-xl font-semibold">Linked session setups</h3>
+                  </div>
+                  <span className="pill pill-neutral">{plannedSession.drivers.length} drivers</span>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  {plannedSession.drivers.map((driver) => (
+                    <div key={`${driver.id}-mobile-setup`} className="workspace-subtle-card p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{driver.name}</p>
+                          <p className="text-sm muted">{driver.class_name || "No class"}</p>
+                        </div>
+                        <span className="pill pill-neutral">Setup</span>
+                      </div>
+                      <div className="mt-4 grid gap-2">
+                        {buildSetupSummary(driver.setup).slice(0, 4).map(([label, value]) => (
+                          <div key={`${driver.id}-${label}`} className="session-debrief-row">
+                            <span>{label}</span>
+                            <span>{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ) : null}
+          </div>
+        ) : null}
+
+        {activeTab === "lap-times" ? (
+          <div className="grid gap-4">
+            {telemetryDriverRows.map((driver) => (
+              <article key={`${driver.id}-mobile-laps`} className="app-panel p-4">
+                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <p className="workspace-section-label">{driver.name}</p>
+                    <h3 className="mt-2 text-xl font-semibold">Lap summary</h3>
+                  </div>
+                  <div className="chip-row">
+                    <span className="pill">{formatMetric(driver.bestLap)} best</span>
+                    <span className="pill pill-neutral">{driver.lapCount} laps</span>
+                  </div>
+                </div>
+                <div className="mt-4 mobile-session-stats-grid">
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Average</p>
+                    <p className="workspace-kpi-detail mt-2">{formatMetric(driver.averageLap, 3)}</p>
+                  </div>
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Top speed</p>
+                    <p className="workspace-kpi-detail mt-2">{formatSessionSpeed(driver.topSpeed)}</p>
+                  </div>
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Consistency</p>
+                    <p className="workspace-kpi-detail mt-2">{formatMetric(driver.consistency, 3)}</p>
+                  </div>
+                  <div className="workspace-kpi">
+                    <p className="workspace-kpi-label">Max RPM</p>
+                    <p className="workspace-kpi-detail mt-2">{formatMetric(driver.maxRpm)}</p>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-2">
+                  {driver.lapRows.slice(0, 6).map((lap) => (
+                    <div key={`${driver.id}-${lap.label}-mobile-row`} className={`workspace-subtle-card p-3 ${lap.isBest ? "ring-1 ring-blue-400/30" : ""}`}>
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{lap.label}</p>
+                          <p className="text-sm muted">{lap.delta === 0 ? "Best lap" : `+${lap.delta.toFixed(3)}s from best`}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">{formatMetric(lap.time)}</p>
+                          <p className="text-sm muted">{formatSessionSpeed(lap.topSpeed)} / {formatMetric(lap.maxRpm)} rpm</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
+
+        {activeTab === "reports" ? (
+          <div className="grid gap-4">
+            <article className="app-panel p-4">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div>
+                  <p className="workspace-section-label">Publishing</p>
+                  <h3 className="mt-2 text-xl font-semibold">Generate and share</h3>
+                </div>
+                <span className="pill pill-neutral">{reports.length} reports</span>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <button className="workspace-primary px-4 py-3 text-sm font-medium text-white" onClick={onGenerateFeedback} type="button" disabled={loading}>
+                  {loading ? "Generating..." : "Generate report"}
+                </button>
+                <button className="workspace-ghost px-4 py-3 text-sm" onClick={onExportPdf} type="button" disabled={loading}>Export PDF</button>
+                <button className="workspace-ghost px-4 py-3 text-sm" onClick={onOpenReportStudio} type="button">Open studio</button>
+              </div>
+            </article>
+
+            {reports.length ? reports.map((entry) => {
+              const publishConfig = sessionPublishConfig(entry.audience);
+              const showUnpublish = entry.audience === "coach"
+                || (entry.audience === "driver" && (entry.visible_to_driver || entry.status === "published"))
+                || (entry.audience === "parent" && (entry.visible_to_parent || entry.status === "published"));
+              return (
+                <article key={entry.id} className="app-panel p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="workspace-section-label">{portalReportAudienceLabel(entry.audience)}</p>
+                      <h3 className="mt-2 text-xl font-semibold">{entry.title || "Saved report"}</h3>
+                      <p className="mt-2 text-sm muted">{portalPublishedLabel(entry)}</p>
+                    </div>
+                    <div className="chip-row">
+                      {portalVisibilityBadges(entry).map((badge) => (
+                        <span key={`${entry.id}-${badge}`} className="pill pill-neutral">{badge}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {entry.review_note ? (
+                    <div className="workspace-subtle-card mt-4 p-3">
+                      <p className="text-sm font-medium">Review note</p>
+                      <p className="mt-2 text-sm muted">{entry.review_note}</p>
+                    </div>
+                  ) : null}
+                  <div className="mt-4 grid gap-2">
+                    <div className="session-debrief-row">
+                      <span>Reviewed</span>
+                      <span>{entry.reviewed_at || "Not reviewed yet"}</span>
+                    </div>
+                    <div className="session-debrief-row">
+                      <span>Published</span>
+                      <span>{entry.published_at || "Not published yet"}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      className="workspace-primary px-4 py-3 text-sm font-medium text-white"
+                      onClick={() => onPublishReport(entry.id, { ...publishConfig.publishPayload, review_note: entry.review_note || "" })}
+                      type="button"
+                    >
+                      {publishConfig.publishLabel}
+                    </button>
+                    {showUnpublish ? (
+                      <button
+                        className="workspace-ghost px-4 py-3 text-sm"
+                        onClick={() => onPublishReport(entry.id, { ...publishConfig.unpublishPayload, review_note: entry.review_note || "" })}
+                        type="button"
+                      >
+                        {publishConfig.unpublishLabel}
+                      </button>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            }) : null}
+
+            {reports.length ? <SavedReportsPanel reports={reports} /> : null}
+          </div>
+        ) : null}
+      </div>
     );
   }
 

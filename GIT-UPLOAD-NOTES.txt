@@ -1,0 +1,23 @@
+﻿DER Telemetry Analysis Software Git/source upload package
+Created: 20260408-190830
+
+Included:
+- backend/app
+- backend/tests
+- frontend/app
+- frontend/components
+- frontend/lib
+- frontend/public
+- frontend/smoke
+- frontend package/config/test files
+- scripts
+
+Excluded:
+- .git
+- node_modules
+- frontend/.next
+- frontend/.next-runtime
+- local logs
+- local SQLite runtime/test DBs
+- live app.db
+- backups

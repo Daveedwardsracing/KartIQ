@@ -769,6 +769,17 @@ def format_retrieval_context(context: dict | None) -> str:
             f"- {planned_session.get('name', '')} / {planned_session.get('venue', '')} / "
             f"status {planned_session.get('status', 'planned')}"
         )
+        weather_bits = [
+            planned_session.get("weather", ""),
+            planned_session.get("track_condition", ""),
+            planned_session.get("forecast_summary", ""),
+        ]
+        if any(weather_bits):
+            lines.append(
+                f"- Conditions: {' / '.join(bit for bit in weather_bits if bit)}"
+            )
+        if planned_session.get("forecast_detail"):
+            lines.append(f"- Forecast detail: {planned_session.get('forecast_detail')}")
         if planned_session.get("drivers"):
             for driver in planned_session.get("drivers", [])[:8]:
                 setup = driver.get("setup") or {}
@@ -791,9 +802,11 @@ def format_retrieval_context(context: dict | None) -> str:
         lines.append("Current event sessions:")
         for item in current_event_sessions[:24]:
             driver_list = ", ".join(item.get("drivers", [])[:5]) or "none listed"
+            weather_bits = [item.get("weather", ""), item.get("forecast_summary", "")]
             lines.append(
                 f"- {item.get('name', 'Session')}: {item.get('session_type', '')}, date {item.get('date', '')}, "
-                f"time {item.get('time_window', '') or 'not set'}, status {item.get('status', 'planned')}, drivers {driver_list}"
+                f"time {item.get('time_window', '') or 'not set'}, status {item.get('status', 'planned')}, "
+                f"drivers {driver_list}{', weather ' + ' / '.join(bit for bit in weather_bits if bit) if any(weather_bits) else ''}"
             )
     recent_sessions = context.get("recent_sessions") or []
     if recent_sessions:
@@ -826,10 +839,12 @@ def format_retrieval_context(context: dict | None) -> str:
     if all_planned_sessions:
         lines.append("Planned session library:")
         for item in all_planned_sessions[:24]:
+            weather_bits = [item.get("weather", ""), item.get("forecast_summary", "")]
             lines.append(
                 f"- {item.get('name', 'Session')}: venue {item.get('venue', '')}, event {item.get('event_name', '')}, "
                 f"date {item.get('date', '')}, time {item.get('time_window', '') or 'not set'}, "
                 f"status {item.get('status', 'planned')}, drivers {', '.join(item.get('drivers', [])[:5]) or 'none'}"
+                f"{', weather ' + ' / '.join(bit for bit in weather_bits if bit) if any(weather_bits) else ''}"
             )
     driver_directory = context.get("driver_directory") or []
     if driver_directory:
@@ -972,6 +987,7 @@ def _summarize_event(event: dict) -> dict:
 
 
 def _summarize_planned_session(session: dict) -> dict:
+    forecast = session.get("weather_forecast") or {}
     return {
         "id": session.get("id"),
         "name": session.get("name"),
@@ -984,8 +1000,36 @@ def _summarize_planned_session(session: dict) -> dict:
         "status": session.get("status", "planned"),
         "weather": session.get("weather", ""),
         "track_condition": session.get("track_condition", ""),
+        "forecast_summary": forecast.get("summary", ""),
+        "forecast_detail": _summarize_weather_forecast(forecast),
         "drivers": [driver.get("name", "") for driver in (session.get("drivers") or [])[:8]],
     }
+
+
+def _summarize_weather_forecast(forecast: dict) -> str:
+    if not forecast:
+        return ""
+    bits = []
+    if forecast.get("location_name"):
+        bits.append(str(forecast.get("location_name")))
+    if forecast.get("condition_label"):
+        bits.append(str(forecast.get("condition_label")))
+    if forecast.get("temperature_range"):
+        bits.append(str(forecast.get("temperature_range")))
+    if forecast.get("rain_chance_label"):
+        bits.append(f"rain {forecast.get('rain_chance_label')}")
+    if forecast.get("wind_label"):
+        bits.append(f"wind {forecast.get('wind_label')}")
+    if forecast.get("session_start_time") or forecast.get("session_end_time"):
+        bits.append(
+            "window "
+            + " - ".join(
+                bit for bit in [forecast.get("session_start_time", ""), forecast.get("session_end_time", "")] if bit
+            )
+        )
+    if forecast.get("last_updated"):
+        bits.append(f"updated {forecast.get('last_updated')}")
+    return " / ".join(bit for bit in bits if bit)
 
 
 def _summarize_setup_database(setup_database: dict) -> list[dict]:
